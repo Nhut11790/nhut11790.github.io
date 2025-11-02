@@ -1,65 +1,533 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Xin chào!</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 0;
-      background: #f7fafc;
-      color: #1a202c;
-      display: grid;
-      place-items: center;
-      min-height: 100vh;
-    }
-    .card {
-      background: #fff;
-      padding: 24px 28px;
-      border-radius: 14px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      text-align: center;
-      max-width: 520px;
-    }
-    h1 {
-      margin: 0 0 12px;
-      font-size: 28px;
-      letter-spacing: 0.2px;
-    }
-    p {
-      margin: 0 0 16px;
-      font-size: 16px;
-      color: #4a5568;
-    }
-    .btn {
-      display: inline-block;
-      padding: 10px 16px;
-      border-radius: 10px;
-      background: #2b6cb0;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      transition: transform 120ms ease, box-shadow 120ms ease, background 160ms ease;
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(43,108,176,0.35); }
-    .btn:active { transform: translateY(0); box-shadow: none; }
-    footer { margin-top: 14px; font-size: 13px; color: #718096; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đàn Piano</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .piano {
+            display: flex;
+            position: relative;
+            user-select: none;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .key {
+            position: relative;
+            cursor: pointer;
+            transition: background 0.05s ease, box-shadow 0.05s ease;
+        }
+
+        .white-key {
+            width: 50px;
+            height: 250px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
+            border: 2px solid #333;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 15px;
+            font-size: 11px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .white-key:hover {
+            background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
+        }
+
+        .white-key:active, .white-key.active {
+            background: linear-gradient(to bottom, #e0e0e0 0%, #d0d0d0 100%);
+            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .black-key {
+            width: 40px;
+            height: 160px;
+            background: linear-gradient(to bottom, #2c2c2c 0%, #000000 100%);
+            border: 2px solid #000;
+            border-radius: 0 0 3px 3px;
+            position: absolute;
+            z-index: 2;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+            font-size: 10px;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .black-key:hover {
+            background: linear-gradient(to bottom, #3c3c3c 0%, #1a1a1a 100%);
+        }
+
+        .black-key:active, .black-key.active {
+            background: linear-gradient(to bottom, #1a1a1a 0%, #000000 100%);
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .info {
+            text-align: center;
+            margin-top: 30px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            cursor: pointer;
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .note-display {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            min-height: 30px;
+        }
+    </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Xin chào, chúc mừng bạn với website mới!</h1>
-    <p>Đây là trang chào mừng đầu tiên của bạn. Hãy bắt đầu xây dựng điều bạn mong muốn.</p>
-    <a class="btn" href="#bat-dau">Bắt đầu ngay</a>
-    <footer>© 2025 Website của bạn</footer>
-  </main>
+    <div class="container">
+        <h1>🎹 Đàn Piano</h1>
+        
+        <div class="note-display" id="noteDisplay"></div>
+        
+        <div class="piano" id="piano"></div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="volume">Âm lượng:</label>
+                <input type="range" id="volume" min="0" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <label for="waveform">Âm sắc:</label>
+                <select id="waveform">
+                    <option value="piano">Piano</option>
+                    <option value="electric-piano">Electric Piano</option>
+                    <option value="organ">Organ</option>
+                    <option value="guitar">Guitar</option>
+                    <option value="bell">Bell</option>
+                    <option value="synth">Synth</option>
+                    <option value="strings">Strings</option>
+                    <option value="flute">Flute</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="info">
+            <p><strong>Hướng dẫn:</strong></p>
+            <p>🖱️ Click chuột hoặc ⌨️ nhấn phím trên bàn phím để chơi</p>
+            <p>Phím thấp: Z X C V B N M (trắng) | S D G H J (đen)</p>
+            <p>Phím giữa: Q W E R T Y U (trắng) | 2 3 5 6 7 (đen)</p>
+            <p>Phím cao: I O P [ ] (trắng) | 9 0 = (đen)</p>
+        </div>
+    </div>
 
-  <script>
-    document.querySelector('.btn').addEventListener('click', function (e) {
-      e.preventDefault();
-      alert('Chúc bạn code thật “mượt”! 🚀');
-    });
-  </script>
+    <script>
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+        
+        const keys = [
+            { note: 'C3', freq: 130.81, color: 'white', key: 'Z' },
+            { note: 'C#3', freq: 138.59, color: 'black', key: 'S' },
+            { note: 'D3', freq: 146.83, color: 'white', key: 'X' },
+            { note: 'D#3', freq: 155.56, color: 'black', key: 'D' },
+            { note: 'E3', freq: 164.81, color: 'white', key: 'C' },
+            { note: 'F3', freq: 174.61, color: 'white', key: 'V' },
+            { note: 'F#3', freq: 185.00, color: 'black', key: 'G' },
+            { note: 'G3', freq: 196.00, color: 'white', key: 'B' },
+            { note: 'G#3', freq: 207.65, color: 'black', key: 'H' },
+            { note: 'A3', freq: 220.00, color: 'white', key: 'N' },
+            { note: 'A#3', freq: 233.08, color: 'black', key: 'J' },
+            { note: 'B3', freq: 246.94, color: 'white', key: 'M' },
+            
+            { note: 'C4', freq: 261.63, color: 'white', key: 'Q' },
+            { note: 'C#4', freq: 277.18, color: 'black', key: '2' },
+            { note: 'D4', freq: 293.66, color: 'white', key: 'W' },
+            { note: 'D#4', freq: 311.13, color: 'black', key: '3' },
+            { note: 'E4', freq: 329.63, color: 'white', key: 'E' },
+            { note: 'F4', freq: 349.23, color: 'white', key: 'R' },
+            { note: 'F#4', freq: 369.99, color: 'black', key: '5' },
+            { note: 'G4', freq: 392.00, color: 'white', key: 'T' },
+            { note: 'G#4', freq: 415.30, color: 'black', key: '6' },
+            { note: 'A4', freq: 440.00, color: 'white', key: 'Y' },
+            { note: 'A#4', freq: 466.16, color: 'black', key: '7' },
+            { note: 'B4', freq: 493.88, color: 'white', key: 'U' },
+            
+            { note: 'C5', freq: 523.25, color: 'white', key: 'I' },
+            { note: 'C#5', freq: 554.37, color: 'black', key: '9' },
+            { note: 'D5', freq: 587.33, color: 'white', key: 'O' },
+            { note: 'D#5', freq: 622.25, color: 'black', key: '0' },
+            { note: 'E5', freq: 659.25, color: 'white', key: 'P' },
+            { note: 'F5', freq: 698.46, color: 'white', key: '[' },
+            { note: 'F#5', freq: 739.99, color: 'black', key: '=' },
+            { note: 'G5', freq: 783.99, color: 'white', key: ']' }
+        ];
+
+        const piano = document.getElementById('piano');
+        const volumeControl = document.getElementById('volume');
+        const waveformControl = document.getElementById('waveform');
+        const noteDisplay = document.getElementById('noteDisplay');
+        
+        let activeOscillators = {};
+        let currentVolume = 0.5;
+        let currentWaveform = 'piano';
+
+        volumeControl.addEventListener('input', (e) => {
+            currentVolume = e.target.value / 100;
+        });
+
+        waveformControl.addEventListener('change', (e) => {
+            currentWaveform = e.target.value;
+        });
+
+        function getInstrumentConfig(instrument) {
+            const configs = {
+                'piano': {
+                    attack: 0.002,
+                    decay: 0.3,
+                    sustain: 0.1,
+                    release: 0.5,
+                    wave: 'triangle',
+                    harmonics: [
+                        { wave: 'sine', detune: 0, gain: 0.8 },
+                        { wave: 'sine', detune: 1200, gain: 0.15 },
+                        { wave: 'sine', detune: 1900, gain: 0.05 }
+                    ]
+                },
+                'electric-piano': {
+                    attack: 0.001,
+                    decay: 0.2,
+                    sustain: 0.3,
+                    release: 0.4,
+                    wave: 'sine',
+                    harmonics: [
+                        { wave: 'sine', detune: 0, gain: 1 },
+                        { wave: 'triangle', detune: 1200, gain: 0.3 }
+                    ]
+                },
+                'organ': {
+                    attack: 0.01,
+                    decay: 0.1,
+                    sustain: 0.8,
+                    release: 0.1,
+                    wave: 'square',
+                    harmonics: [
+                        { wave: 'square', detune: 0, gain: 0.7 },
+                        { wave: 'square', detune: 1200, gain: 0.3 }
+                    ]
+                },
+                'guitar': {
+                    attack: 0.001,
+                    decay: 0.5,
+                    sustain: 0.05,
+                    release: 0.8,
+                    wave: 'sawtooth',
+                    harmonics: [
+                        { wave: 'sawtooth', detune: 0, gain: 0.6 },
+                        { wave: 'triangle', detune: -12, gain: 0.4 }
+                    ]
+                },
+                'bell': {
+                    attack: 0.001,
+                    decay: 1.5,
+                    sustain: 0.05,
+                    release: 2,
+                    wave: 'sine',
+                    harmonics: [
+                        { wave: 'sine', detune: 0, gain: 0.6 },
+                        { wave: 'sine', detune: 1700, gain: 0.3 },
+                        { wave: 'sine', detune: 2400, gain: 0.1 }
+                    ]
+                },
+                'synth': {
+                    attack: 0.01,
+                    decay: 0.2,
+                    sustain: 0.6,
+                    release: 0.3,
+                    wave: 'sawtooth',
+                    harmonics: [
+                        { wave: 'sawtooth', detune: 0, gain: 0.5 },
+                        { wave: 'square', detune: 7, gain: 0.5 }
+                    ]
+                },
+                'strings': {
+                    attack: 0.1,
+                    decay: 0.3,
+                    sustain: 0.7,
+                    release: 0.5,
+                    wave: 'sawtooth',
+                    harmonics: [
+                        { wave: 'sawtooth', detune: 0, gain: 0.4 },
+                        { wave: 'sawtooth', detune: -7, gain: 0.3 },
+                        { wave: 'sawtooth', detune: 7, gain: 0.3 }
+                    ]
+                },
+                'flute': {
+                    attack: 0.05,
+                    decay: 0.1,
+                    sustain: 0.6,
+                    release: 0.3,
+                    wave: 'sine',
+                    harmonics: [
+                        { wave: 'sine', detune: 0, gain: 0.8 },
+                        { wave: 'sine', detune: 1200, gain: 0.2 }
+                    ]
+                }
+            };
+            return configs[instrument] || configs['piano'];
+        }
+
+        function createPiano() {
+            let whiteKeys = [];
+            let blackKeys = [];
+            
+            // Tạo tất cả các phím trước
+            keys.forEach((keyData) => {
+                const keyElement = document.createElement('div');
+                keyElement.className = keyData.color === 'white' ? 'white-key key' : 'black-key key';
+                keyElement.dataset.freq = keyData.freq;
+                keyElement.dataset.note = keyData.note;
+                keyElement.dataset.key = keyData.key;
+                keyElement.textContent = keyData.key;
+                
+                if (keyData.color === 'white') {
+                    whiteKeys.push({ element: keyElement, data: keyData });
+                } else {
+                    blackKeys.push({ element: keyElement, data: keyData });
+                }
+                
+                keyElement.addEventListener('mousedown', () => playNote(keyData.freq, keyElement, keyData.note));
+                keyElement.addEventListener('mouseup', () => stopNote(keyData.freq, keyElement));
+                keyElement.addEventListener('mouseleave', () => stopNote(keyData.freq, keyElement));
+                keyElement.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    playNote(keyData.freq, keyElement, keyData.note);
+                });
+                keyElement.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    stopNote(keyData.freq, keyElement);
+                });
+            });
+            
+            // Thêm phím trắng trước
+            whiteKeys.forEach(({ element }, index) => {
+                element.style.position = 'relative';
+                element.style.left = '0';
+                piano.appendChild(element);
+            });
+            
+            // Tính vị trí phím đen dựa trên pattern C C# D D# E F F# G G# A A# B
+            const blackKeyPositions = [1, 2, 4, 5, 6]; // Vị trí trong 1 octave (7 phím trắng)
+            let blackKeyIndex = 0;
+            
+            blackKeys.forEach(({ element, data }) => {
+                // Tính octave và vị trí trong octave
+                const noteIndex = keys.indexOf(keys.find(k => k.freq === data.freq));
+                let whiteKeysBefore = 0;
+                
+                // Đếm số phím trắng trước phím đen này
+                for (let i = 0; i < noteIndex; i++) {
+                    if (keys[i].color === 'white') {
+                        whiteKeysBefore++;
+                    }
+                }
+                
+                // Đặt vị trí phím đen giữa 2 phím trắng
+                const leftPosition = (whiteKeysBefore * 50) - 18;
+                element.style.left = `${leftPosition}px`;
+                piano.appendChild(element);
+                blackKeyIndex++;
+            });
+        }
+
+        function playNote(frequency, element, noteName) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            // Cho phép bấm lại ngay cả khi đang phát - dừng nốt cũ trước
+            if (activeOscillators[frequency]) {
+                stopNoteImmediately(frequency);
+            }
+            
+            const config = getInstrumentConfig(currentWaveform);
+            const now = audioContext.currentTime;
+            const oscillators = [];
+            const gainNodes = [];
+            
+            // Tạo master gain node
+            const masterGain = audioContext.createGain();
+            masterGain.connect(audioContext.destination);
+            
+            // ADSR envelope
+            masterGain.gain.setValueAtTime(0, now);
+            masterGain.gain.linearRampToValueAtTime(currentVolume, now + config.attack);
+            masterGain.gain.linearRampToValueAtTime(currentVolume * config.sustain, now + config.attack + config.decay);
+            
+            // Tạo harmonics cho âm thanh phong phú hơn
+            config.harmonics.forEach(harmonic => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.type = harmonic.wave;
+                osc.frequency.setValueAtTime(frequency, now);
+                osc.detune.setValueAtTime(harmonic.detune, now);
+                
+                gain.gain.setValueAtTime(harmonic.gain, now);
+                
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                
+                oscillators.push(osc);
+                gainNodes.push(gain);
+            });
+            
+            activeOscillators[frequency] = { oscillators, gainNodes, masterGain, config };
+            element.classList.add('active');
+            noteDisplay.textContent = `♪ ${noteName}`;
+        }
+
+        function stopNoteImmediately(frequency) {
+            const nodes = activeOscillators[frequency];
+            if (!nodes) return;
+            
+            const { oscillators, masterGain } = nodes;
+            
+            try {
+                oscillators.forEach(osc => {
+                    osc.stop();
+                    osc.disconnect();
+                });
+                masterGain.disconnect();
+            } catch (e) {
+                // Ignore errors
+            }
+            
+            delete activeOscillators[frequency];
+        }
+
+        function stopNote(frequency, element) {
+            const nodes = activeOscillators[frequency];
+            if (!nodes) return;
+            
+            const { oscillators, masterGain, config } = nodes;
+            const now = audioContext.currentTime;
+            
+            // Release envelope
+            masterGain.gain.cancelScheduledValues(now);
+            masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+            masterGain.gain.linearRampToValueAtTime(0, now + config.release);
+            
+            setTimeout(() => {
+                try {
+                    oscillators.forEach(osc => {
+                        osc.stop();
+                        osc.disconnect();
+                    });
+                    masterGain.disconnect();
+                } catch (e) {
+                    // Ignore errors if already stopped
+                }
+                delete activeOscillators[frequency];
+            }, config.release * 1000 + 100);
+            
+            element.classList.remove('active');
+            setTimeout(() => {
+                if (noteDisplay.textContent === `♪ ${element.dataset.note}`) {
+                    noteDisplay.textContent = '';
+                }
+            }, 300);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toUpperCase();
+            const keyData = keys.find(k => k.key === key);
+            if (keyData && !e.repeat) {
+                const keyElement = document.querySelector(`[data-key="${key}"]`);
+                playNote(keyData.freq, keyElement, keyData.note);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toUpperCase();
+            const keyData = keys.find(k => k.key === key);
+            if (keyData) {
+                const keyElement = document.querySelector(`[data-key="${key}"]`);
+                stopNote(keyData.freq, keyElement);
+            }
+        });
+
+        createPiano();
+    </script>
 </body>
 </html>
