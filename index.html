@@ -2,204 +2,259 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Piano 61 phím - Labels sharps, samples flats</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Piano 61 phím — iOS activation button positioned above key</title>
   <style>
     :root{
       --white:#fff;
       --black:#111;
       --accent:#ff6f61;
-      --key-width:40px;      /* width of each white key */
-      --black-width:26px;    /* width of each black key */
+      --key-width:44px;      /* width of each white key (bigger for touch) */
+      --black-width:28px;    /* width of each black key */
       --keyboard-padding:8px;/* keyboard container padding */
+      --scrubber-height:28px;/* height of bottom scrubber area */
     }
     *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-    body{margin:0;background:#f6f7fb;color:#111;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
+    html,body{height:100%;margin:0;background:#f6f7fb;color:#111;}
+    body{display:flex;align-items:flex-start;justify-content:center;padding:12px;}
     .app{width:100%;max-width:1400px;}
-    h1{margin:0 0 12px;font-size:20px;}
-    .controls{margin-bottom:12px;font-size:14px;color:#333;}
+    h1{margin:0 0 8px;font-size:18px;}
+    .controls{margin-bottom:8px;font-size:13px;color:#333;}
     /* keyboard container */
+    .keyboard-wrapper{position:relative;} /* important: wrapper is positioning context for the activation button */
     .keyboard{
       position:relative;
-      height:220px;
+      height:240px;
       user-select:none;
-      touch-action:none;
+      touch-action: pan-x; /* allow horizontal panning */
       border:1px solid #ddd;
       background:linear-gradient(#fff,#f3f6ff);
-      overflow:auto;
+      overflow-x:auto;
+      overflow-y:visible;
       padding:var(--keyboard-padding);
       white-space:nowrap;
+      -webkit-overflow-scrolling:touch; /* smooth scrolling on iOS */
+      scrollbar-width: none; /* firefox hide scrollbar */
     }
-
-    /* white keys are inline-block so they form the base layout */
-    .key{position:relative;vertical-align:top;margin-right:1px;cursor:pointer;border-radius:0 0 6px 6px;box-shadow:0 3px 0 rgba(0,0,0,0.06);text-align:center; display:inline-block;}
+    /* hide native scrollbar in webkit */
+    .keyboard::-webkit-scrollbar{height:0;display:none;}
+    /* Keys */
+    .key{position:relative;vertical-align:top;margin-right:1px;cursor:pointer;border-radius:0 0 8px 8px;box-shadow:0 3px 0 rgba(0,0,0,0.06);text-align:center; display:inline-block; -webkit-tap-highlight-color: transparent;}
     .white{
       width:var(--key-width);
       height:200px;
       background:var(--white);
       border:1px solid #d6d9e6;
       z-index:1;
-      position:relative; /* so offsetLeft is relative to keyboard container */
+      position:relative;
+      display:inline-block;
     }
-    /* black keys positioned absolutely inside .keyboard */
     .black{
       width:var(--black-width);
-      height:120px;
+      height:128px;
       background:var(--black);
       color:#fff;
       position:absolute;
       z-index:3;
-      border-radius:0 0 3px 3px;
-      box-shadow:0 4px 8px rgba(0,0,0,0.35);
-      top: calc(var(--keyboard-padding) + 8px); /* small top offset so they sit visually above whites */
-      transform: translateY(-6px); /* lift a little to overlap nicely */
+      border-radius:0 0 6px 6px;
+      box-shadow:0 6px 10px rgba(0,0,0,0.35);
+      top: calc(var(--keyboard-padding) + 6px);
+      transform: translateY(-6px);
       pointer-events:auto;
     }
-    .key-label{position:absolute;left:0;right:0;bottom:6px;font-size:11px;color:#333;pointer-events:none;}
-    .key.black .key-label{color:#fff;}
+    .key-label{position:absolute;left:0;right:0;bottom:6px;font-size:12px;color:#333;pointer-events:none;}
+    .key.black .key-label{color:#fff;font-size:11px;}
     .key.active{background:linear-gradient(var(--accent),#c64a3f);color:#fff;box-shadow:none;}
     .key.active.black{background:#ff4d3a;}
     .status{margin-top:8px;font-size:13px;color:#555;}
     .short-help{margin-top:6px;font-size:13px;color:#444;}
     .footer-note{margin-top:10px;font-size:12px;color:#666;}
-    /* make sure black keys overlay and don't push layout */
-    /* hide text selection artifacts */
-    .keyboard .key { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+    /* Scrubber (touch-friendly horizontal scrub bar below keyboard) */
+    .scrubber{
+      margin-top:8px;
+      height:var(--scrubber-height);
+      width:100%;
+      background:transparent;
+      display:flex;
+      align-items:center;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action: none;
+    }
+    .scrubber-rail{
+      flex:1;
+      height:10px;
+      background:linear-gradient(#efefef,#e6e6e6);
+      border-radius:8px;
+      position:relative;
+      margin:0 8px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .scrubber-thumb{
+      position:absolute;
+      height:18px;
+      min-width:20px;
+      border-radius:9px;
+      top:50%;
+      transform:translateY(-50%);
+      background:linear-gradient(#fff,#f0f0f0);
+      box-shadow:0 2px 6px rgba(0,0,0,0.15);
+      border:1px solid rgba(0,0,0,0.08);
+      touch-action:none;
+    }
+    .scrubber-hint{font-size:12px;color:#666;margin-left:8px;white-space:nowrap;}
+    /* iOS activation button - placed outside (above) the keyboard, inside the keyboard-wrapper */
+    .ios-activate{
+      position:absolute; /* relative to .keyboard-wrapper */
+      width:36px;height:36px;border-radius:18px;
+      background:rgba(255,255,255,0.98);
+      border:1px solid #ddd;box-shadow:0 2px 10px rgba(0,0,0,0.12);
+      display:flex;align-items:center;justify-content:center;font-size:16px;color:#111;
+      z-index:9999;
+      cursor:pointer;
+      transition:transform .12s,opacity .12s;
+      opacity:1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ios-activate.hidden{opacity:0;pointer-events:none;}
+    /* responsive tweaks */
+    @media (max-width:640px){
+      :root{--key-width:40px; --black-width:24px;}
+      .keyboard{height:220px;}
+      .black{height:110px;}
+    }
   </style>
 </head>
 <body>
   <div class="app">
-    <h1>Piano 61 phím — PC keyboard + mouse</h1>
+    <h1>Piano 61 phím — iOS activation button positioned above key</h1>
     <div class="controls">
-      <div class="short-help">Phạm vi: C2 .. C7 (61 phím). Bật âm thanh bằng 1 lần click hoặc nhấn phím. Octave shift: ←/→ hoặc Up/Down.</div>
-      <div class="short-help">PC keys: hàng dưới (z s x d c v g b h n j m), hàng trên (q 2 w 3 e r 5 t 6 y 7 u)</div>
+      <div class="short-help">Bật âm thanh bằng 1 lần chạm (iOS cần nút kích hoạt). Kéo thanh dưới để cuộn nhanh tới nốt mong muốn.</div>
       <div id="status" class="status">Tải sample... <span id="loadedCount">0</span>/<span id="totalCount">61</span></div>
     </div>
-    <div id="keyboard" class="keyboard" aria-label="Piano keyboard"></div>
+
+    <div class="keyboard-wrapper">
+      <div id="keyboard" class="keyboard" aria-label="Piano keyboard"></div>
+
+      <!-- iOS activation small button - positioned outside the keyboard (above it) but inside wrapper -->
+      <button id="iosActivateBtn" class="ios-activate" title="Bật âm thanh">🔊</button>
+    </div>
+
+    <!-- scrubber for easy horizontal navigation on mobile -->
+    <div class="scrubber" aria-hidden="false">
+      <div id="scrubberRail" class="scrubber-rail" role="slider" aria-label="Scroll piano"></div>
+      <div class="scrubber-hint">Kéo để di chuyển</div>
+    </div>
+
     <div class="footer-note">
-      Ghi chú: sample mp3 của bạn sử dụng tên dạng flat (ví dụ Db4). Để bạn dễ đọc, nhãn phím đen trên giao diện được hiển thị dưới dạng sharp (ví dụ D#4) nhưng chương trình vẫn tải file Db4.mp3 tương ứng và pitch-shift nếu cần.
-      <br>
-      Sample source: https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/acoustic_grand_piano-mp3/
+      Ghi chú: sample mp3 sử dụng tên dạng flat (Db4). Giao diện hiển thị phím đen theo dạng sharp (D#4...), nhưng khi phát vẫn tải file flat tương ứng.
     </div>
   </div>
 
   <script>
-    // --- Config & data ---
+    // -----------------------
+    // Piano with mobile scrubber + iOS activation button positioned ABOVE the keyboard
+    // -----------------------
     const SAMPLE_BASE = "https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/acoustic_grand_piano-mp3/";
     const START_MIDI = 36; // C2
     const NUM_KEYS = 61;
-
-    // For filenames (samples) we use flats: Db, Eb, Gb, Ab, Bb
     const NOTE_NAMES_FLAT = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
-    // For display labels we will use sharps for black keys: C, C#, D, D#, ...
     const NOTE_NAMES_SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
     const KEYBOARD_ROWS = [
       ['z','s','x','d','c','v','g','b','h','n','j','m'],
       ['q','2','w','3','e','r','5','t','6','y','7','u']
     ];
 
     let audioCtx = null;
-    const gainNode = {node: null, value: 0.9};
+    const iosActiveAudioURL = "https://raw.githubusercontent.com/nhut990/files/refs/heads/main/tieng/E3_active_audio.mp3";
+    const gainNode = {node:null, value:0.9};
 
     const keyboardDiv = document.getElementById('keyboard');
     const loadedCountSpan = document.getElementById('loadedCount');
     const totalCountSpan = document.getElementById('totalCount');
     totalCountSpan.textContent = NUM_KEYS;
+    const iosBtn = document.getElementById('iosActivateBtn');
+
+    // scrubber elements
+    const scrubberRail = document.getElementById('scrubberRail');
 
     let buffersByNote = {};
     let loadedCount = 0;
-    const pressedComputerKeys = new Set();
+    let pressedComputerKeys = new Set();
     let keyboardOctaveShift = 0;
 
-    // filename: use flat names because your mp3 files are Db4 etc
+    // helper names
     function midiToNameFlat(midi) {
       const octave = Math.floor(midi/12) - 1;
       const name = NOTE_NAMES_FLAT[midi % 12];
       return `${name}${octave}`;
     }
-    // display label: show sharp names for black keys (e.g., D#4), naturals show as C, D...
     function midiToDisplayName(midi) {
       const octave = Math.floor(midi/12) - 1;
       const mod = midi % 12;
-      // if black key -> use sharp name (C# D# ...)
-      if ([1,3,6,8,10].includes(mod)) {
-        return `${NOTE_NAMES_SHARP[mod]}${octave}`;
-      } else {
-        // natural: show plain (C D E F G A B)
-        return `${NOTE_NAMES_SHARP[mod]}${octave}`; // NOTE_NAMES_SHARP has naturals correct (no #)
-      }
+      return `${NOTE_NAMES_SHARP[mod]}${octave}`;
     }
-
     function isBlackKey(midi) {
-      const n = midi % 12;
-      return [1,3,6,8,10].includes(n);
+      return [1,3,6,8,10].includes(midi % 12);
     }
 
-    // --- Build UI: whites inline, blacks absolute positioned later ---
+    // Build UI keys: whites inline (flow), blacks absolute repositioned
     function buildKeyboardUI() {
       keyboardDiv.innerHTML = '';
-      // Create keys in order; whites form flow layout, blacks are absolute elements but created here too
-      for (let i = 0; i < NUM_KEYS; i++) {
+      for (let i=0;i<NUM_KEYS;i++){
         const midi = START_MIDI + i;
-        const isBlack = isBlackKey(midi);
-        const keyEl = document.createElement('div');
-        keyEl.classList.add('key');
-        keyEl.dataset.midi = midi;
-        if (isBlack) {
-          keyEl.classList.add('black');
-          keyEl.style.display = 'block';
+        const el = document.createElement('div');
+        el.classList.add('key');
+        el.dataset.midi = midi;
+        if (isBlackKey(midi)) {
+          el.classList.add('black');
+          el.style.display = 'block';
         } else {
-          keyEl.classList.add('white');
+          el.classList.add('white');
         }
         const label = document.createElement('div');
         label.className = 'key-label';
-        label.textContent = midiToDisplayName(midi); // display using sharps for black keys
-        keyEl.appendChild(label);
-        keyboardDiv.appendChild(keyEl);
+        label.textContent = midiToDisplayName(midi);
+        el.appendChild(label);
+        keyboardDiv.appendChild(el);
       }
 
-      // After whites are laid out, position black keys
-      requestAnimationFrame(positionBlackKeys);
+      requestAnimationFrame(() => {
+        positionBlackKeys();
+        updateScrubberThumb();
+        positionIosActivate(); // ensure correct initial pos of the activation button
+      });
 
-      // pointer handlers: handle down on ANY key (black or white)
-      keyboardDiv.addEventListener('pointerdown', (e) => {
-        const key = e.target.closest('.key');
+      // pointerdown for keys
+      keyboardDiv.addEventListener('pointerdown', (ev) => {
+        const key = ev.target.closest('.key');
         if (!key) return;
         const midi = Number(key.dataset.midi);
         ensureAudioContext();
         playMidi(midi);
         activateKey(midi);
-        const up = () => {
-          deactivateKey(midi);
-          window.removeEventListener('pointerup', up);
-        };
+        const up = () => { deactivateKey(midi); window.removeEventListener('pointerup', up); };
         window.addEventListener('pointerup', up);
-      });
+      }, {passive:true});
     }
 
-    // Position black keys centered between adjacent white keys:
-    function positionBlackKeys() {
+    // Position black keys centered between adjacent white keys
+    function positionBlackKeys(){
       const keys = Array.from(keyboardDiv.querySelectorAll('.key'));
       const whites = keys.filter(k => k.classList.contains('white'));
       const blacks = keys.filter(k => k.classList.contains('black'));
-
-      // Map white midi -> element
       const whiteMap = {};
       whites.forEach(w => whiteMap[w.dataset.midi] = w);
 
       blacks.forEach(b => {
         const midi = Number(b.dataset.midi);
-        // Prev white is midi-1 (white immediately to left), next white is midi+1
         const prevWhite = whiteMap[String(midi - 1)];
         const nextWhite = whiteMap[String(midi + 1)];
-        const bw = b.offsetWidth || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--black-width')) || 26;
-        const smallAdjust = 1; // tweak to compensate borders/margins
-
+        const bw = b.offsetWidth || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--black-width')) || 28;
+        const smallAdjust = 1;
         if (prevWhite) {
           const leftPrev = prevWhite.offsetLeft;
           const wWidth = prevWhite.offsetWidth;
-          // center black key near the gap: place center of black at right edge of prev white minus smallAdjust
           const left = leftPrev + wWidth - (bw / 2) - smallAdjust;
           b.style.left = Math.round(left) + 'px';
         } else if (nextWhite) {
@@ -212,154 +267,123 @@
       });
     }
 
-    function activateKey(midi) {
-      const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`);
-      if (el) el.classList.add('active');
-    }
-    function deactivateKey(midi) {
-      const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`);
-      if (el) el.classList.remove('active');
-    }
+    function activateKey(midi){ const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`); if(el) el.classList.add('active'); }
+    function deactivateKey(midi){ const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`); if(el) el.classList.remove('active'); }
 
-    // --- Audio handling (preload + play) ---
-    function ensureAudioContext() {
-      if (!audioCtx) {
+    // Audio context
+    function ensureAudioContext(){
+      if (!audioCtx){
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         gainNode.node = audioCtx.createGain();
         gainNode.node.gain.value = gainNode.value;
         gainNode.node.connect(audioCtx.destination);
       }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    async function preloadAll() {
+    // Preload samples into AudioBuffer map (filename uses flat names)
+    async function preloadAll(){
       ensureAudioContext();
       const promises = [];
-      for (let i = 0; i < NUM_KEYS; i++) {
+      for (let i=0;i<NUM_KEYS;i++){
         const midi = START_MIDI + i;
-        promises.push(preloadForMidi(midi).then(() => {
-          loadedCount++;
-          loadedCountSpan.textContent = loadedCount;
-        }).catch((err) => {
-          loadedCount++;
-          loadedCountSpan.textContent = loadedCount;
-          console.warn("Preload missing:", midiToNameFlat(midi), err);
-        }));
+        promises.push(preloadForMidi(midi).then(()=>{ loadedCount++; loadedCountSpan.textContent=loadedCount; }).catch((err)=>{ loadedCount++; loadedCountSpan.textContent=loadedCount; console.warn("preload miss", midiToNameFlat(midi), err); }));
       }
       await Promise.all(promises);
-      document.getElementById('status').textContent = 'Tải xong samples (một số nốt có thể dùng fallback nếu thiếu).';
+      document.getElementById('status').textContent = 'Tải xong samples (fallback nếu thiếu).';
     }
 
-    // Try to fetch exact flat-named sample (Db4.mp3). If missing, search nearest +/-12 semitones.
-    async function preloadForMidi(midi) {
-      const noteName = midiToNameFlat(midi); // flat name for filename
+    async function preloadForMidi(midi){
+      const noteName = midiToNameFlat(midi);
       const url = SAMPLE_BASE + noteName + '.mp3';
       try {
         const buf = await fetchAndDecode(url);
-        buffersByNote[noteName] = {buffer: buf, midi: midi};
+        buffersByNote[noteName] = {buffer:buf, midi:midi};
         return;
-      } catch (e) {
-        for (let dist = 1; dist <= 12; dist++) {
-          for (let dir of [+1, -1]) {
-            const m2 = midi + dist * dir;
+      } catch(e){
+        for (let dist=1; dist<=12; dist++){
+          for (let dir of [+1,-1]){
+            const m2 = midi + dist*dir;
             if (m2 < 0 || m2 > 127) continue;
-            const name2 = midiToNameFlat(m2);
-            const url2 = SAMPLE_BASE + name2 + '.mp3';
+            const n2 = midiToNameFlat(m2);
+            const url2 = SAMPLE_BASE + n2 + '.mp3';
             try {
               const buf = await fetchAndDecode(url2);
-              buffersByNote[noteName] = {buffer: buf, midi: m2};
+              buffersByNote[noteName] = {buffer:buf, midi:m2};
               return;
-            } catch (_) { }
+            } catch(_) {}
           }
         }
-        throw new Error("No sample found near " + noteName);
+        throw new Error("No sample near " + noteName);
       }
     }
 
-    async function fetchAndDecode(url) {
+    async function fetchAndDecode(url){
       const resp = await fetch(url);
       if (!resp.ok) throw new Error("HTTP " + resp.status);
       const ab = await resp.arrayBuffer();
       return await audioCtx.decodeAudioData(ab);
     }
 
-    function playMidi(midi) {
+    function playMidi(midi){
       const noteName = midiToNameFlat(midi);
       let entry = buffersByNote[noteName];
-      if (!entry) {
-        entry = findNearestLoaded(midi);
-        if (!entry) {
-          console.warn("No buffer available for", noteName);
-          return;
-        }
-      }
-      const buffer = entry.buffer;
+      if (!entry) entry = findNearestLoaded(midi);
+      if (!entry) { console.warn("No buffer", noteName); return; }
       const source = audioCtx.createBufferSource();
-      source.buffer = buffer;
+      source.buffer = entry.buffer;
       const semitoneDiff = midi - entry.midi;
-      source.playbackRate.value = Math.pow(2, semitoneDiff / 12);
+      source.playbackRate.value = Math.pow(2, semitoneDiff/12);
       source.connect(gainNode.node);
       source.start();
     }
-
-    function findNearestLoaded(midiTarget) {
-      let best = null;
-      let bestDist = 999;
-      for (const k of Object.keys(buffersByNote)) {
-        const item = buffersByNote[k];
-        if (!item || !item.buffer) continue;
-        const d = Math.abs(item.midi - midiTarget);
-        if (d < bestDist) {
-          bestDist = d;
-          best = item;
-        }
+    function findNearestLoaded(midiTarget){
+      let best=null, bestDist=999;
+      for (const k of Object.keys(buffersByNote)){
+        const it = buffersByNote[k];
+        if (!it || !it.buffer) continue;
+        const d = Math.abs(it.midi - midiTarget);
+        if (d < bestDist){ bestDist=d; best=it; }
       }
       return best;
     }
 
-    // --- Computer keyboard mapping ---
-    function setupComputerKeyboardHandling() {
-      let baseC = 60; // C4
-      window.addEventListener('keydown', (e) => {
-        if (e.repeat) return;
-        if (e.key === 'ArrowUp') { keyboardOctaveShift += 12; updateStatus(); return; }
-        if (e.key === 'ArrowDown') { keyboardOctaveShift -= 12; updateStatus(); return; }
-        if (e.key === 'ArrowLeft') { keyboardOctaveShift -= 12; updateStatus(); return; }
-        if (e.key === 'ArrowRight') { keyboardOctaveShift += 12; updateStatus(); return; }
-
+    // Keyboard mapping (PC)
+    function setupComputerKeyboardHandling(){
+      let baseC = 60;
+      window.addEventListener('keydown',(e)=>{ if (e.repeat) return;
+        if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+          if (e.key==='ArrowUp') keyboardOctaveShift += 12;
+          if (e.key==='ArrowDown') keyboardOctaveShift -= 12;
+          if (e.key==='ArrowLeft') keyboardOctaveShift -= 12;
+          if (e.key==='ArrowRight') keyboardOctaveShift += 12;
+          updateStatus();
+          return;
+        }
         const k = e.key.toLowerCase();
-        if (KEYBOARD_ROWS.flat().includes(k)) {
-          let mapped = null;
-          for (let rowIndex = 0; rowIndex < KEYBOARD_ROWS.length; rowIndex++) {
-            const row = KEYBOARD_ROWS[rowIndex];
-            const idx = row.indexOf(k);
-            if (idx !== -1) {
-              const midi = baseC + rowIndex * 12 + idx + keyboardOctaveShift;
-              mapped = midi;
+        if (KEYBOARD_ROWS.flat().includes(k)){
+          for (let r=0;r<KEYBOARD_ROWS.length;r++){
+            const idx = KEYBOARD_ROWS[r].indexOf(k);
+            if (idx!==-1){
+              const midi = baseC + r*12 + idx + keyboardOctaveShift;
+              e.preventDefault();
+              ensureAudioContext();
+              playMidi(Math.max(0,Math.min(127,midi)));
+              activateKey(midi);
+              pressedComputerKeys.add(k);
               break;
             }
           }
-          if (mapped !== null) {
-            e.preventDefault();
-            ensureAudioContext();
-            const midiClamped = Math.max(0, Math.min(127, mapped));
-            playMidi(midiClamped);
-            activateKey(midiClamped);
-            pressedComputerKeys.add(k);
-          }
         }
       });
-      window.addEventListener('keyup', (e) => {
+      window.addEventListener('keyup',(e)=>{
         const k = e.key.toLowerCase();
-        if (pressedComputerKeys.has(k)) {
+        if (pressedComputerKeys.has(k)){
           let baseC = 60;
-          for (let rowIndex = 0; rowIndex < KEYBOARD_ROWS.length; rowIndex++) {
-            const row = KEYBOARD_ROWS[rowIndex];
-            const idx = row.indexOf(k);
-            if (idx !== -1) {
-              const midi = baseC + rowIndex * 12 + idx + keyboardOctaveShift;
+          for (let r=0;r<KEYBOARD_ROWS.length;r++){
+            const idx = KEYBOARD_ROWS[r].indexOf(k);
+            if (idx!==-1){
+              const midi = baseC + r*12 + idx + keyboardOctaveShift;
               deactivateKey(midi);
             }
           }
@@ -368,34 +392,159 @@
       });
     }
 
-    function updateStatus() {
-      document.getElementById('status').textContent = `Octave shift (semitones): ${keyboardOctaveShift}. Samples tải: ${loadedCount}/${NUM_KEYS}`;
+    function updateStatus(){ document.getElementById('status').textContent = `Octave shift (semitones): ${keyboardOctaveShift}. Samples tải: ${loadedCount}/${NUM_KEYS}`; }
+
+    // -----------------------
+    // Scrubber logic (touch-friendly)
+    // -----------------------
+    let thumb = null;
+    function createScrubber(){
+      thumb = document.createElement('div');
+      thumb.className = 'scrubber-thumb';
+      scrubberRail.appendChild(thumb);
+
+      let dragging = false;
+      let railRect = null;
+      function updateFromThumb(clientX){
+        railRect = railRect || scrubberRail.getBoundingClientRect();
+        const railW = railRect.width;
+        const thumbW = Math.max(20, thumb.offsetWidth || 20);
+        let x = clientX - railRect.left - thumbW/2;
+        x = Math.max(0, Math.min(railW - thumbW, x));
+        thumb.style.left = Math.round(x) + 'px';
+        const ratio = (railW - thumbW) <= 0 ? 0 : (x / (railW - thumbW));
+        const scrollable = keyboardDiv.scrollWidth - keyboardDiv.clientWidth;
+        keyboardDiv.scrollLeft = Math.round(ratio * scrollable);
+      }
+
+      scrubberRail.addEventListener('pointerdown', (ev) => {
+        ev.preventDefault();
+        railRect = scrubberRail.getBoundingClientRect();
+        dragging = true;
+        updateFromThumb(ev.clientX);
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+      }, {passive:false});
+
+      function onMove(ev){ ev.preventDefault(); updateFromThumb(ev.clientX); }
+      function onUp(ev){ dragging = false; window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); }
+
+      keyboardDiv.addEventListener('scroll', () => { updateScrubberThumb(); }, {passive:true});
+      window.addEventListener('resize', updateScrubberThumb);
     }
 
-    // --- Init ---
+    function updateScrubberThumb(){
+      if (!thumb) return;
+      const railRect = scrubberRail.getBoundingClientRect();
+      const railW = railRect.width;
+      const sw = keyboardDiv.scrollWidth;
+      const cw = keyboardDiv.clientWidth;
+      if (sw <= 0) return;
+      let thumbW = Math.max(20, Math.round((cw / sw) * railW));
+      if (thumbW > railW) thumbW = railW;
+      thumb.style.width = thumbW + 'px';
+      const scrollable = Math.max(1, sw - cw);
+      const ratio = keyboardDiv.scrollLeft / scrollable;
+      const left = Math.round(ratio * (railW - thumbW));
+      thumb.style.left = left + 'px';
+    }
+
+    // -----------------------
+    // iOS activation button logic (position ABOVE keyboard, not inside key)
+    // -----------------------
+    // place small button above A#2 (MIDI 46). When clicked, it plays the provided mp3 (user gesture)
+    const ACTIVATION_MIDI = 46; // A#2 / Bb2 (displayed as A#2)
+    function positionIosActivate(){
+      const btn = iosBtn;
+      const keyEl = keyboardDiv.querySelector(`.key[data-midi="${ACTIVATION_MIDI}"]`);
+      const wrapper = keyboardDiv.parentElement; // keyboard-wrapper
+      if (!keyEl || !wrapper) {
+        btn.classList.add('hidden');
+        return;
+      }
+
+      // compute positions in viewport then translate to wrapper-local coords
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const keyRect = keyEl.getBoundingClientRect();
+
+      const btnW = btn.offsetWidth || 36;
+      const btnH = btn.offsetHeight || 36;
+
+      // left: center above the key (relative to wrapper)
+      const left = (keyRect.left + keyRect.width/2) - wrapperRect.left - (btnW/2);
+      // top: place the button above the keyboard area (outside the keyboard) with small gap
+      // keyboardDiv offsetTop relative to wrapper:
+      const kbOffsetTop = keyboardDiv.offsetTop; // usually equals wrapper padding/margins
+      const gap = 6;
+      const top = kbOffsetTop - btnH - gap; // negative relative to keyboard top within wrapper
+
+      // apply (clamp to wrapper bounds)
+      const clampLeft = Math.max(4, Math.min(wrapper.clientWidth - btnW - 4, left));
+      btn.style.left = Math.round(clampLeft) + 'px';
+      btn.style.top = Math.round(top) + 'px';
+      btn.classList.remove('hidden');
+    }
+
+    let iosActivated = false;
+    iosBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        const a = new Audio(iosActiveAudioURL);
+        a.crossOrigin = "anonymous";
+        // attempt to play the external mp3 as a user gesture to unlock audio on iOS
+        await a.play().catch(()=>{/* ignore play rejection if any */});
+        // create/resume AudioContext as well
+        ensureAudioContext();
+        if (audioCtx){
+          try {
+            const buffer = audioCtx.createBuffer(1,1,audioCtx.sampleRate);
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            src.connect(audioCtx.destination);
+            src.start(0);
+          } catch(e){}
+        }
+        iosActivated = true;
+        iosBtn.classList.add('hidden');
+        document.getElementById('status').textContent = 'Âm thanh đã kích hoạt';
+      } catch(err){
+        console.warn('activation failed', err);
+      }
+    });
+
+    // reposition iOS button when keyboard scrolls/resizes/rotates
+    function watchPositioning(){
+      keyboardDiv.addEventListener('scroll', () => requestAnimationFrame(positionIosActivate), {passive:true});
+      window.addEventListener('resize', () => { requestAnimationFrame(()=>{ positionBlackKeys(); updateScrubberThumb(); positionIosActivate(); }); });
+      window.addEventListener('orientationchange', () => setTimeout(()=>{ positionBlackKeys(); updateScrubberThumb(); positionIosActivate(); }, 200));
+    }
+
+    // -----------------------
+    // Init
+    // -----------------------
     (async function init(){
       buildKeyboardUI();
+      createScrubber();
       setupComputerKeyboardHandling();
+      watchPositioning();
 
-      // Preload on first user gesture (required by many browsers)
+      // preload samples on first user gesture (required by many browsers)
       const startOnce = async () => {
         ensureAudioContext();
         await preloadAll();
-        // reposition blacks again in case fonts/padding changed after loads
-        requestAnimationFrame(positionBlackKeys);
+        requestAnimationFrame(()=>{ positionBlackKeys(); updateScrubberThumb(); positionIosActivate(); });
         window.removeEventListener('pointerdown', startOnce);
         window.removeEventListener('keydown', startOnce);
       };
-      window.addEventListener('pointerdown', startOnce);
-      window.addEventListener('keydown', startOnce);
-
-      // Reposition blacks on window resize (keeps alignment on resizes / zoom)
-      window.addEventListener('resize', () => {
-        requestAnimationFrame(positionBlackKeys);
-      });
-
-      updateStatus();
+      window.addEventListener('pointerdown', startOnce, {passive:true});
+      window.addEventListener('keydown', startOnce, {passive:true});
     })();
+
+    // reposition black keys and scrubber once layout stabilizes
+    window.addEventListener('load', () => { setTimeout(()=>{ positionBlackKeys(); updateScrubberThumb(); positionIosActivate(); }, 150); });
+
+    // expose some debug helpers
+    window.__pianoHelpers = { positionBlackKeys, updateScrubberThumb, positionIosActivate };
   </script>
 </body>
 </html>
