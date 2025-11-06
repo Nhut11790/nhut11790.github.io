@@ -107,6 +107,32 @@
             display: block;
         }
 
+        .video-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            padding: 0;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .video-container.fullscreen .back-btn {
+            display: none;
+        }
+
+        .video-container.fullscreen .video-info {
+            display: none;
+        }
+
+        .video-container.fullscreen .video-wrapper {
+            padding-bottom: 0;
+            height: 100vh;
+            border-radius: 0;
+        }
+
         .video-wrapper {
             position: relative;
             padding-bottom: 56.25%;
@@ -254,10 +280,37 @@
             const videoFrame = document.getElementById('videoFrame');
             
             videoContainer.classList.remove('active');
+            videoContainer.classList.remove('fullscreen');
             videoFrame.src = '';
+            document.body.style.overflow = 'auto';
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Xử lý xoay màn hình trên mobile
+        function handleOrientationChange() {
+            const videoContainer = document.getElementById('videoContainer');
+            
+            // Kiểm tra nếu video đang chạy
+            if (!videoContainer.classList.contains('active')) {
+                return;
+            }
+
+            // Kiểm tra orientation
+            if (window.matchMedia("(orientation: landscape)").matches && window.innerWidth < 1024) {
+                // Landscape mode trên mobile/tablet
+                videoContainer.classList.add('fullscreen');
+                document.body.style.overflow = 'hidden';
+            } else {
+                // Portrait mode hoặc desktop
+                videoContainer.classList.remove('fullscreen');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Lắng nghe sự kiện thay đổi orientation
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('resize', handleOrientationChange);
 
         window.onload = function() {
             document.getElementById('videoInput').focus();
