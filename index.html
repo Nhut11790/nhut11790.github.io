@@ -167,7 +167,7 @@
     <div class="container">
         <div class="header">
             <h1>🎬 YouTube Viewer</h1>
-            <p>Xem video YouTube không quảng cáo</p>
+            <p>Xem video YouTube dễ dàng</p>
         </div>
 
         <div class="input-section">
@@ -196,7 +196,7 @@
             </div>
             <div class="video-info" id="videoInfo">
                 <h3 id="videoTitle">✨ Đang phát video</h3>
-                <p id="videoDescription">Video đang được phát trong chế độ nhúng, giảm thiểu quảng cáo.</p>
+                <p id="videoDescription">Video đang được phát trong chế độ nhúng.</p>
             </div>
         </div>
     </div>
@@ -209,7 +209,7 @@
             const videoDescription = document.getElementById('videoDescription');
 
             videoTitle.textContent = title || '✨ Đang phát video';
-            videoDescription.textContent = channel ? `Kênh: ${channel}` : 'Video đang được phát trong chế độ nhúng, giảm thiểu quảng cáo.';
+            videoDescription.textContent = channel ? `Kênh: ${channel}` : 'Video đang được phát trong chế độ nhúng.';
 
             videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
             
