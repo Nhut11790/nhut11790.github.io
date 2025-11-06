@@ -1,320 +1,401 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Viewer - Xem Video</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Piano 61 phím - Labels sharps, samples flats</title>
+  <style>
+    :root{
+      --white:#fff;
+      --black:#111;
+      --accent:#ff6f61;
+      --key-width:40px;      /* width of each white key */
+      --black-width:26px;    /* width of each black key */
+      --keyboard-padding:8px;/* keyboard container padding */
+    }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{margin:0;background:#f6f7fb;color:#111;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
+    .app{width:100%;max-width:1400px;}
+    h1{margin:0 0 12px;font-size:20px;}
+    .controls{margin-bottom:12px;font-size:14px;color:#333;}
+    /* keyboard container */
+    .keyboard{
+      position:relative;
+      height:220px;
+      user-select:none;
+      touch-action:none;
+      border:1px solid #ddd;
+      background:linear-gradient(#fff,#f3f6ff);
+      overflow:auto;
+      padding:var(--keyboard-padding);
+      white-space:nowrap;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .input-section {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
-        .input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 15px 20px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        input[type="text"]:focus {
-            border-color: #667eea;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            font-size: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .info-text {
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        .video-container {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        .video-container.active {
-            display: block;
-        }
-
-        .video-container.fullscreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-            padding: 0;
-            border-radius: 0;
-            margin: 0;
-        }
-
-        .video-container.fullscreen .back-btn {
-            display: none;
-        }
-
-        .video-container.fullscreen .video-info {
-            display: none;
-        }
-
-        .video-container.fullscreen .video-wrapper {
-            padding-bottom: 0;
-            height: 100vh;
-            border-radius: 0;
-        }
-
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 10px;
-            background: #000;
-        }
-
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .video-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 10px;
-        }
-
-        .video-info h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 20px;
-        }
-
-        .video-info p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        .back-btn {
-            margin-bottom: 15px;
-            background: #6c757d;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .input-container {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-    </style>
+    /* white keys are inline-block so they form the base layout */
+    .key{position:relative;vertical-align:top;margin-right:1px;cursor:pointer;border-radius:0 0 6px 6px;box-shadow:0 3px 0 rgba(0,0,0,0.06);text-align:center; display:inline-block;}
+    .white{
+      width:var(--key-width);
+      height:200px;
+      background:var(--white);
+      border:1px solid #d6d9e6;
+      z-index:1;
+      position:relative; /* so offsetLeft is relative to keyboard container */
+    }
+    /* black keys positioned absolutely inside .keyboard */
+    .black{
+      width:var(--black-width);
+      height:120px;
+      background:var(--black);
+      color:#fff;
+      position:absolute;
+      z-index:3;
+      border-radius:0 0 3px 3px;
+      box-shadow:0 4px 8px rgba(0,0,0,0.35);
+      top: calc(var(--keyboard-padding) + 8px); /* small top offset so they sit visually above whites */
+      transform: translateY(-6px); /* lift a little to overlap nicely */
+      pointer-events:auto;
+    }
+    .key-label{position:absolute;left:0;right:0;bottom:6px;font-size:11px;color:#333;pointer-events:none;}
+    .key.black .key-label{color:#fff;}
+    .key.active{background:linear-gradient(var(--accent),#c64a3f);color:#fff;box-shadow:none;}
+    .key.active.black{background:#ff4d3a;}
+    .status{margin-top:8px;font-size:13px;color:#555;}
+    .short-help{margin-top:6px;font-size:13px;color:#444;}
+    .footer-note{margin-top:10px;font-size:12px;color:#666;}
+    /* make sure black keys overlay and don't push layout */
+    /* hide text selection artifacts */
+    .keyboard .key { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎬 YouTube Viewer</h1>
-            <p>Xem video YouTube dễ dàng</p>
-        </div>
-
-        <div class="input-section">
-            <div class="input-container">
-                <input 
-                    type="text" 
-                    id="videoInput" 
-                    placeholder="Nhập URL YouTube hoặc Video ID..."
-                    onkeypress="if(event.key === 'Enter') loadVideoFromInput()"
-                >
-                <button class="btn" onclick="loadVideoFromInput()">▶ Xem Video</button>
-            </div>
-            <p class="info-text">
-                💡 Hỗ trợ: youtube.com/watch?v=xxxxx, youtu.be/xxxxx, hoặc chỉ ID video
-            </p>
-        </div>
-
-        <div class="video-container" id="videoContainer">
-            <button class="btn back-btn" onclick="closeVideo()">← Quay Lại</button>
-            <div class="video-wrapper">
-                <iframe 
-                    id="videoFrame"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            </div>
-            <div class="video-info" id="videoInfo">
-                <h3 id="videoTitle">✨ Đang phát video</h3>
-                <p id="videoDescription">Video đang được phát trong chế độ nhúng.</p>
-            </div>
-        </div>
+  <div class="app">
+    <h1>Piano 61 phím — PC keyboard + mouse</h1>
+    <div class="controls">
+      <div class="short-help">Phạm vi: C2 .. C7 (61 phím). Bật âm thanh bằng 1 lần click hoặc nhấn phím. Octave shift: ←/→ hoặc Up/Down.</div>
+      <div class="short-help">PC keys: hàng dưới (z s x d c v g b h n j m), hàng trên (q 2 w 3 e r 5 t 6 y 7 u)</div>
+      <div id="status" class="status">Tải sample... <span id="loadedCount">0</span>/<span id="totalCount">61</span></div>
     </div>
+    <div id="keyboard" class="keyboard" aria-label="Piano keyboard"></div>
+    <div class="footer-note">
+      Ghi chú: sample mp3 của bạn sử dụng tên dạng flat (ví dụ Db4). Để bạn dễ đọc, nhãn phím đen trên giao diện được hiển thị dưới dạng sharp (ví dụ D#4) nhưng chương trình vẫn tải file Db4.mp3 tương ứng và pitch-shift nếu cần.
+      <br>
+      Sample source: https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/acoustic_grand_piano-mp3/
+    </div>
+  </div>
 
-    <script>
-        function playVideo(videoId, title = '', channel = '') {
-            const videoFrame = document.getElementById('videoFrame');
-            const videoContainer = document.getElementById('videoContainer');
-            const videoTitle = document.getElementById('videoTitle');
-            const videoDescription = document.getElementById('videoDescription');
+  <script>
+    // --- Config & data ---
+    const SAMPLE_BASE = "https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/acoustic_grand_piano-mp3/";
+    const START_MIDI = 36; // C2
+    const NUM_KEYS = 61;
 
-            videoTitle.textContent = title || '✨ Đang phát video';
-            videoDescription.textContent = channel ? `Kênh: ${channel}` : 'Video đang được phát trong chế độ nhúng.';
+    // For filenames (samples) we use flats: Db, Eb, Gb, Ab, Bb
+    const NOTE_NAMES_FLAT = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+    // For display labels we will use sharps for black keys: C, C#, D, D#, ...
+    const NOTE_NAMES_SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
-            videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
-            
-            videoContainer.classList.add('active');
-            videoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const KEYBOARD_ROWS = [
+      ['z','s','x','d','c','v','g','b','h','n','j','m'],
+      ['q','2','w','3','e','r','5','t','6','y','7','u']
+    ];
+
+    let audioCtx = null;
+    const gainNode = {node: null, value: 0.9};
+
+    const keyboardDiv = document.getElementById('keyboard');
+    const loadedCountSpan = document.getElementById('loadedCount');
+    const totalCountSpan = document.getElementById('totalCount');
+    totalCountSpan.textContent = NUM_KEYS;
+
+    let buffersByNote = {};
+    let loadedCount = 0;
+    const pressedComputerKeys = new Set();
+    let keyboardOctaveShift = 0;
+
+    // filename: use flat names because your mp3 files are Db4 etc
+    function midiToNameFlat(midi) {
+      const octave = Math.floor(midi/12) - 1;
+      const name = NOTE_NAMES_FLAT[midi % 12];
+      return `${name}${octave}`;
+    }
+    // display label: show sharp names for black keys (e.g., D#4), naturals show as C, D...
+    function midiToDisplayName(midi) {
+      const octave = Math.floor(midi/12) - 1;
+      const mod = midi % 12;
+      // if black key -> use sharp name (C# D# ...)
+      if ([1,3,6,8,10].includes(mod)) {
+        return `${NOTE_NAMES_SHARP[mod]}${octave}`;
+      } else {
+        // natural: show plain (C D E F G A B)
+        return `${NOTE_NAMES_SHARP[mod]}${octave}`; // NOTE_NAMES_SHARP has naturals correct (no #)
+      }
+    }
+
+    function isBlackKey(midi) {
+      const n = midi % 12;
+      return [1,3,6,8,10].includes(n);
+    }
+
+    // --- Build UI: whites inline, blacks absolute positioned later ---
+    function buildKeyboardUI() {
+      keyboardDiv.innerHTML = '';
+      // Create keys in order; whites form flow layout, blacks are absolute elements but created here too
+      for (let i = 0; i < NUM_KEYS; i++) {
+        const midi = START_MIDI + i;
+        const isBlack = isBlackKey(midi);
+        const keyEl = document.createElement('div');
+        keyEl.classList.add('key');
+        keyEl.dataset.midi = midi;
+        if (isBlack) {
+          keyEl.classList.add('black');
+          keyEl.style.display = 'block';
+        } else {
+          keyEl.classList.add('white');
         }
+        const label = document.createElement('div');
+        label.className = 'key-label';
+        label.textContent = midiToDisplayName(midi); // display using sharps for black keys
+        keyEl.appendChild(label);
+        keyboardDiv.appendChild(keyEl);
+      }
 
-        function extractVideoId(input) {
-            input = input.trim();
-            
-            if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
-                return input;
-            }
-            
-            let match = input.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-            if (match) {
-                return match[1];
-            }
-            
-            match = input.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
-            if (match) {
-                return match[1];
-            }
-            
-            return null;
-        }
+      // After whites are laid out, position black keys
+      requestAnimationFrame(positionBlackKeys);
 
-        function loadVideoFromInput() {
-            const input = document.getElementById('videoInput').value;
-            const videoId = extractVideoId(input);
-            
-            if (!videoId) {
-                alert('⚠️ URL không hợp lệ! Vui lòng nhập URL YouTube hoặc Video ID hợp lệ.');
-                return;
-            }
-            
-            playVideo(videoId);
-        }
-
-        function closeVideo() {
-            const videoContainer = document.getElementById('videoContainer');
-            const videoFrame = document.getElementById('videoFrame');
-            
-            videoContainer.classList.remove('active');
-            videoContainer.classList.remove('fullscreen');
-            videoFrame.src = '';
-            document.body.style.overflow = 'auto';
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Xử lý xoay màn hình trên mobile
-        function handleOrientationChange() {
-            const videoContainer = document.getElementById('videoContainer');
-            
-            // Kiểm tra nếu video đang chạy
-            if (!videoContainer.classList.contains('active')) {
-                return;
-            }
-
-            // Kiểm tra orientation
-            if (window.matchMedia("(orientation: landscape)").matches && window.innerWidth < 1024) {
-                // Landscape mode trên mobile/tablet
-                videoContainer.classList.add('fullscreen');
-                document.body.style.overflow = 'hidden';
-            } else {
-                // Portrait mode hoặc desktop
-                videoContainer.classList.remove('fullscreen');
-                document.body.style.overflow = 'auto';
-            }
-        }
-
-        // Lắng nghe sự kiện thay đổi orientation
-        window.addEventListener('orientationchange', handleOrientationChange);
-        window.addEventListener('resize', handleOrientationChange);
-
-        window.onload = function() {
-            document.getElementById('videoInput').focus();
+      // pointer handlers: handle down on ANY key (black or white)
+      keyboardDiv.addEventListener('pointerdown', (e) => {
+        const key = e.target.closest('.key');
+        if (!key) return;
+        const midi = Number(key.dataset.midi);
+        ensureAudioContext();
+        playMidi(midi);
+        activateKey(midi);
+        const up = () => {
+          deactivateKey(midi);
+          window.removeEventListener('pointerup', up);
         };
-    </script>
+        window.addEventListener('pointerup', up);
+      });
+    }
+
+    // Position black keys centered between adjacent white keys:
+    function positionBlackKeys() {
+      const keys = Array.from(keyboardDiv.querySelectorAll('.key'));
+      const whites = keys.filter(k => k.classList.contains('white'));
+      const blacks = keys.filter(k => k.classList.contains('black'));
+
+      // Map white midi -> element
+      const whiteMap = {};
+      whites.forEach(w => whiteMap[w.dataset.midi] = w);
+
+      blacks.forEach(b => {
+        const midi = Number(b.dataset.midi);
+        // Prev white is midi-1 (white immediately to left), next white is midi+1
+        const prevWhite = whiteMap[String(midi - 1)];
+        const nextWhite = whiteMap[String(midi + 1)];
+        const bw = b.offsetWidth || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--black-width')) || 26;
+        const smallAdjust = 1; // tweak to compensate borders/margins
+
+        if (prevWhite) {
+          const leftPrev = prevWhite.offsetLeft;
+          const wWidth = prevWhite.offsetWidth;
+          // center black key near the gap: place center of black at right edge of prev white minus smallAdjust
+          const left = leftPrev + wWidth - (bw / 2) - smallAdjust;
+          b.style.left = Math.round(left) + 'px';
+        } else if (nextWhite) {
+          const leftNext = nextWhite.offsetLeft;
+          const left = leftNext - (bw / 2) + 1;
+          b.style.left = Math.round(left) + 'px';
+        } else {
+          b.style.left = '0px';
+        }
+      });
+    }
+
+    function activateKey(midi) {
+      const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`);
+      if (el) el.classList.add('active');
+    }
+    function deactivateKey(midi) {
+      const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`);
+      if (el) el.classList.remove('active');
+    }
+
+    // --- Audio handling (preload + play) ---
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode.node = audioCtx.createGain();
+        gainNode.node.gain.value = gainNode.value;
+        gainNode.node.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    async function preloadAll() {
+      ensureAudioContext();
+      const promises = [];
+      for (let i = 0; i < NUM_KEYS; i++) {
+        const midi = START_MIDI + i;
+        promises.push(preloadForMidi(midi).then(() => {
+          loadedCount++;
+          loadedCountSpan.textContent = loadedCount;
+        }).catch((err) => {
+          loadedCount++;
+          loadedCountSpan.textContent = loadedCount;
+          console.warn("Preload missing:", midiToNameFlat(midi), err);
+        }));
+      }
+      await Promise.all(promises);
+      document.getElementById('status').textContent = 'Tải xong samples (một số nốt có thể dùng fallback nếu thiếu).';
+    }
+
+    // Try to fetch exact flat-named sample (Db4.mp3). If missing, search nearest +/-12 semitones.
+    async function preloadForMidi(midi) {
+      const noteName = midiToNameFlat(midi); // flat name for filename
+      const url = SAMPLE_BASE + noteName + '.mp3';
+      try {
+        const buf = await fetchAndDecode(url);
+        buffersByNote[noteName] = {buffer: buf, midi: midi};
+        return;
+      } catch (e) {
+        for (let dist = 1; dist <= 12; dist++) {
+          for (let dir of [+1, -1]) {
+            const m2 = midi + dist * dir;
+            if (m2 < 0 || m2 > 127) continue;
+            const name2 = midiToNameFlat(m2);
+            const url2 = SAMPLE_BASE + name2 + '.mp3';
+            try {
+              const buf = await fetchAndDecode(url2);
+              buffersByNote[noteName] = {buffer: buf, midi: m2};
+              return;
+            } catch (_) { }
+          }
+        }
+        throw new Error("No sample found near " + noteName);
+      }
+    }
+
+    async function fetchAndDecode(url) {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const ab = await resp.arrayBuffer();
+      return await audioCtx.decodeAudioData(ab);
+    }
+
+    function playMidi(midi) {
+      const noteName = midiToNameFlat(midi);
+      let entry = buffersByNote[noteName];
+      if (!entry) {
+        entry = findNearestLoaded(midi);
+        if (!entry) {
+          console.warn("No buffer available for", noteName);
+          return;
+        }
+      }
+      const buffer = entry.buffer;
+      const source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      const semitoneDiff = midi - entry.midi;
+      source.playbackRate.value = Math.pow(2, semitoneDiff / 12);
+      source.connect(gainNode.node);
+      source.start();
+    }
+
+    function findNearestLoaded(midiTarget) {
+      let best = null;
+      let bestDist = 999;
+      for (const k of Object.keys(buffersByNote)) {
+        const item = buffersByNote[k];
+        if (!item || !item.buffer) continue;
+        const d = Math.abs(item.midi - midiTarget);
+        if (d < bestDist) {
+          bestDist = d;
+          best = item;
+        }
+      }
+      return best;
+    }
+
+    // --- Computer keyboard mapping ---
+    function setupComputerKeyboardHandling() {
+      let baseC = 60; // C4
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+        if (e.key === 'ArrowUp') { keyboardOctaveShift += 12; updateStatus(); return; }
+        if (e.key === 'ArrowDown') { keyboardOctaveShift -= 12; updateStatus(); return; }
+        if (e.key === 'ArrowLeft') { keyboardOctaveShift -= 12; updateStatus(); return; }
+        if (e.key === 'ArrowRight') { keyboardOctaveShift += 12; updateStatus(); return; }
+
+        const k = e.key.toLowerCase();
+        if (KEYBOARD_ROWS.flat().includes(k)) {
+          let mapped = null;
+          for (let rowIndex = 0; rowIndex < KEYBOARD_ROWS.length; rowIndex++) {
+            const row = KEYBOARD_ROWS[rowIndex];
+            const idx = row.indexOf(k);
+            if (idx !== -1) {
+              const midi = baseC + rowIndex * 12 + idx + keyboardOctaveShift;
+              mapped = midi;
+              break;
+            }
+          }
+          if (mapped !== null) {
+            e.preventDefault();
+            ensureAudioContext();
+            const midiClamped = Math.max(0, Math.min(127, mapped));
+            playMidi(midiClamped);
+            activateKey(midiClamped);
+            pressedComputerKeys.add(k);
+          }
+        }
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (pressedComputerKeys.has(k)) {
+          let baseC = 60;
+          for (let rowIndex = 0; rowIndex < KEYBOARD_ROWS.length; rowIndex++) {
+            const row = KEYBOARD_ROWS[rowIndex];
+            const idx = row.indexOf(k);
+            if (idx !== -1) {
+              const midi = baseC + rowIndex * 12 + idx + keyboardOctaveShift;
+              deactivateKey(midi);
+            }
+          }
+          pressedComputerKeys.delete(k);
+        }
+      });
+    }
+
+    function updateStatus() {
+      document.getElementById('status').textContent = `Octave shift (semitones): ${keyboardOctaveShift}. Samples tải: ${loadedCount}/${NUM_KEYS}`;
+    }
+
+    // --- Init ---
+    (async function init(){
+      buildKeyboardUI();
+      setupComputerKeyboardHandling();
+
+      // Preload on first user gesture (required by many browsers)
+      const startOnce = async () => {
+        ensureAudioContext();
+        await preloadAll();
+        // reposition blacks again in case fonts/padding changed after loads
+        requestAnimationFrame(positionBlackKeys);
+        window.removeEventListener('pointerdown', startOnce);
+        window.removeEventListener('keydown', startOnce);
+      };
+      window.addEventListener('pointerdown', startOnce);
+      window.addEventListener('keydown', startOnce);
+
+      // Reposition blacks on window resize (keeps alignment on resizes / zoom)
+      window.addEventListener('resize', () => {
+        requestAnimationFrame(positionBlackKeys);
+      });
+
+      updateStatus();
+    })();
+  </script>
 </body>
 </html>
