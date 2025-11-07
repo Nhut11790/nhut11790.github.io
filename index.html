@@ -1,543 +1,260 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Piano 61 phím</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+  <title>Tốc độ + Bản đồ + Camera</title>
+
+  <!-- Leaflet CSS (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    :root{
-      --white:#fff;
-      --black:#111;
-      --accent:#ff3b30; /* đỏ nổi bật */
-      --key-width:40px;
-      --black-width:26px;
-      --keyboard-padding:8px;
-    }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-    body{margin:0;background:#f6f7fb;color:#111;display:flex;align-items:flex-start;justify-content:center;padding:20px;min-height:100vh;}
-    .app{width:100%;max-width:1400px;position:relative;}
-    h1{
-      margin:24px 0;
-      font-size:28px;
-      text-align:center;
-      color:var(--accent);
-      font-weight:700;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      overflow: hidden;
+      position: relative;
     }
 
-    /* Activation button: fixed overlay so it doesn't shift layout when clicked/hidden */
-    .enable-overlay{
-      position:fixed;
-      left:50%;
-      top:36%;
-      transform:translate(-50%,-50%);
-      z-index:9999;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:auto;
+    /* Tốc độ lớn ở giữa */
+    #speed-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 1000;
+      background: rgba(0,0,0,0.6);
+      padding: 15px 25px;
+      border-radius: 15px;
+      color: white;
     }
-    .enable-sound{
-      background:var(--accent);
-      color:#fff;
-      border:none;
-      padding:14px 22px;
-      border-radius:12px;
-      font-size:18px;
-      cursor:pointer;
-      box-shadow:0 8px 26px rgba(0,0,0,0.22);
-      -webkit-tap-highlight-color: transparent;
+    #speed {
+      font-size: 3.5em;
+      font-weight: bold;
+      margin: 0;
     }
-    .enable-sound:active{transform:translateY(1px);}
-
-    /* small toast */
-    .toast{
-      position:fixed;
-      left:50%;
-      top:18%;
-      transform:translateX(-50%);
-      background:rgba(0,0,0,0.8);
-      color:#fff;
-      padding:10px 14px;
-      border-radius:10px;
-      font-size:14px;
-      z-index:10000;
-      display:none;
-      pointer-events:none;
+    #status {
+      font-size: 1em;
+      margin: 5px 0 0;
     }
 
-    .keyboard{
-      position:relative;
-      height:220px;
-      user-select:none;
-      touch-action:none;
-      border:1px solid #ddd;
-      background:linear-gradient(#fff,#f3f6ff);
-      overflow:auto;
-      padding:var(--keyboard-padding);
-      white-space:nowrap;
+    /* Bản đồ nhỏ góc dưới phải */
+    #map {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      height: 150px;
+      border: 3px solid white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 900;
+      overflow: hidden;
     }
 
-    .key{position:relative;vertical-align:top;margin-right:1px;cursor:pointer;border-radius:0 0 6px 6px;box-shadow:0 3px 0 rgba(0,0,0,0.06);text-align:center; display:inline-block;}
-    .white{
-      width:var(--key-width);
-      height:200px;
-      background:var(--white);
-      border:1px solid #d6d9e6;
-      z-index:1;
-      position:relative;
+    /* Camera - toàn màn hình nền, có thể pinch zoom */
+    #camera-container {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 1;
+      overflow: hidden;
     }
-    .black{
-      width:var(--black-width);
-      height:120px;
-      background:var(--black);
-      color:#fff;
-      position:absolute;
-      z-index:3;
-      border-radius:0 0 3px 3px;
-      box-shadow:0 4px 8px rgba(0,0,0,0.35);
-      top: calc(var(--keyboard-padding) + 8px);
-      transform: translateY(-6px);
-      pointer-events:auto;
+    #camera {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1);
+      transition: transform 0.1s;
     }
-    .key-label{position:absolute;left:0;right:0;bottom:6px;font-size:11px;color:#333;pointer-events:none;}
-    .key.black .key-label{color:#fff;}
-    .key.active{background:linear-gradient(var(--accent),#c64a3f);color:#fff;box-shadow:none;}
-    .key.active.black{background:#ff4d3a;}
-    .keyboard .key { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+
+    /* Nút bật/tắt camera */
+    .btn {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      padding: 12px 20px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1em;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .btn.active { background: #27ae60; }
+
+    /* Ẩn nút Leaflet mặc định */
+    .leaflet-control-container { display: none; }
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>Piano 61 phím</h1>
 
-    <div id="keyboard" class="keyboard" aria-label="Piano keyboard"></div>
+  <!-- Tốc độ -->
+  <div id="speed-container">
+    <div id="speed">0</div>
+    <p>km/h</p>
+    <p id="status">Đang khởi động...</p>
   </div>
 
-  <!-- Activation overlay button (fixed position so it doesn't move layout) -->
-  <div class="enable-overlay" id="enableOverlay" aria-hidden="false">
-    <button id="enableSoundBtn" class="enable-sound" aria-pressed="false">Bật âm</button>
+  <!-- Bản đồ nhỏ -->
+  <div id="map"></div>
+
+  <!-- Camera nền -->
+  <div id="camera-container">
+    <video id="camera" autoplay playsinline></video>
   </div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- Nút bật/tắt camera -->
+  <button class="btn" id="cameraBtn">Bật Camera</button>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    // --- Config & data ---
-    const SAMPLE_BASE = "https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/acoustic_grand_piano-mp3/";
-    const ACTIVATION_SAMPLE = "https://raw.githubusercontent.com/nhut990/files/refs/heads/main/tieng/E3_active_audio.mp3";
-    const START_MIDI = 36; // C2
-    const NUM_KEYS = 61;
+    // === BIẾN TOÀN CỤC ===
+    let map, marker, watchId = null;
+    let isCameraOn = false;
+    const speedEl = document.getElementById('speed');
+    const statusEl = document.getElementById('status');
+    const cameraVideo = document.getElementById('camera');
+    const cameraBtn = document.getElementById('cameraBtn');
 
-    const NOTE_NAMES_FLAT = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
-    const NOTE_NAMES_SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    // === 1. KHỞI TẠO BẢN ĐỒ NHỎ ===
+    function initMap() {
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false,
+        dragging: true,
+        touchZoom: true,
+        doubleClickZoom: false,
+        scrollWheelZoom: false,
+        boxZoom: false,
+        keyboard: false
+      }).setView([0, 0], 15);
 
-    const KEYBOARD_ROWS = [
-      ['z','s','x','d','c','v','g','b','h','n','j','m'],
-      ['q','2','w','3','e','r','5','t','6','y','7','u']
-    ];
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(map);
 
-    let audioCtx = null;
-    const gainNode = {node: null, value: 0.9};
-
-    const keyboardDiv = document.getElementById('keyboard');
-    const enableOverlay = document.getElementById('enableOverlay');
-    const enableBtn = document.getElementById('enableSoundBtn');
-    const toastEl = document.getElementById('toast');
-
-    // raw fetched arrayBuffers (before decoding): key = noteNameFlat (e.g., Db4)
-    const rawBuffersByNote = {}; // { noteName: { arrayBuffer, midi } }
-    // decoded AudioBuffers (after activation): key = noteNameFlat -> { buffer, midi }
-    const buffersByNote = {};
-    let fetchedCount = 0;
-    let decodedCount = 0;
-
-    const pressedComputerKeys = new Set();
-    let keyboardOctaveShift = 0;
-    let isActivated = false;
-
-    function midiToNameFlat(midi) {
-      const octave = Math.floor(midi/12) - 1;
-      const name = NOTE_NAMES_FLAT[midi % 12];
-      return `${name}${octave}`;
-    }
-    function midiToDisplayName(midi) {
-      const octave = Math.floor(midi/12) - 1;
-      const mod = midi % 12;
-      return `${NOTE_NAMES_SHARP[mod]}${octave}`;
-    }
-    function isBlackKey(midi) {
-      const n = midi % 12;
-      return [1,3,6,8,10].includes(n);
+      // Đánh dấu vị trí
+      marker = L.circleMarker([0, 0], {
+        radius: 8,
+        fillColor: '#e74c3c',
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).addTo(map);
     }
 
-    // --- UI build ---
-    function buildKeyboardUI() {
-      keyboardDiv.innerHTML = '';
-      for (let i = 0; i < NUM_KEYS; i++) {
-        const midi = START_MIDI + i;
-        const isBlack = isBlackKey(midi);
-        const keyEl = document.createElement('div');
-        keyEl.classList.add('key');
-        keyEl.dataset.midi = midi;
-        if (isBlack) {
-          keyEl.classList.add('black');
-          keyEl.style.display = 'block';
-        } else {
-          keyEl.classList.add('white');
-        }
-        keyEl.setAttribute('role','button');
-        keyEl.setAttribute('tabindex','0');
-        keyEl.setAttribute('aria-label', midiToDisplayName(midi));
-        const label = document.createElement('div');
-        label.className = 'key-label';
-        label.textContent = midiToDisplayName(midi);
-        keyEl.appendChild(label);
-        keyboardDiv.appendChild(keyEl);
-      }
-
-      requestAnimationFrame(positionBlackKeys);
-
-      // pointer handlers for mouse/touch
-      keyboardDiv.addEventListener('pointerdown', (e) => {
-        const key = e.target.closest('.key');
-        if (!key) return;
-        const midi = Number(key.dataset.midi);
-
-        // if not activated yet, show small prompt
-        if (!isActivated) {
-          showToast("Vui lòng bấm 'Bật âm' để nghe âm thanh", 1600);
-          // visually activate key briefly
-          activateKey(midi);
-          setTimeout(() => deactivateKey(midi), 180);
-          return;
-        }
-
-        try { if (e.pointerId && key.setPointerCapture) key.setPointerCapture(e.pointerId); } catch(_) {}
-        ensureAudioContext();
-        playMidi(midi);
-        activateKey(midi);
-        const up = (ev) => {
-          try { if (e.pointerId && key.releasePointerCapture) key.releasePointerCapture(e.pointerId); } catch(_) {}
-          deactivateKey(midi);
-          window.removeEventListener('pointerup', up);
-          window.removeEventListener('pointercancel', up);
-        };
-        window.addEventListener('pointerup', up);
-        window.addEventListener('pointercancel', up);
-      });
-
-      // keyboard (Enter/Space) support for keys
-      keyboardDiv.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          const key = e.target.closest('.key');
-          if (!key) return;
-          e.preventDefault();
-          const midi = Number(key.dataset.midi);
-          if (!isActivated) {
-            showToast("Vui lòng bấm 'Bật âm' để nghe âm thanh", 1600);
-            activateKey(midi);
-            setTimeout(() => deactivateKey(midi), 180);
-            return;
-          }
-          ensureAudioContext();
-          playMidi(midi);
-          activateKey(midi);
-        }
-      });
-      keyboardDiv.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          const key = e.target.closest('.key');
-          if (!key) return;
-          const midi = Number(key.dataset.midi);
-          deactivateKey(midi);
-        }
-      });
-    }
-
-    function positionBlackKeys() {
-      const keys = Array.from(keyboardDiv.querySelectorAll('.key'));
-      const whites = keys.filter(k => k.classList.contains('white'));
-      const blacks = keys.filter(k => k.classList.contains('black'));
-
-      const whiteMap = {};
-      whites.forEach(w => whiteMap[w.dataset.midi] = w);
-
-      const containerRect = keyboardDiv.getBoundingClientRect();
-      blacks.forEach(b => {
-        const midi = Number(b.dataset.midi);
-        const prevWhite = whiteMap[String(midi - 1)];
-        const nextWhite = whiteMap[String(midi + 1)];
-        const bw = b.offsetWidth || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--black-width')) || 26;
-
-        if (prevWhite) {
-          const prevRect = prevWhite.getBoundingClientRect();
-          const left = (prevRect.left - containerRect.left) + prevWhite.offsetWidth - (bw / 2);
-          b.style.left = Math.round(left + keyboardDiv.scrollLeft) + 'px';
-        } else if (nextWhite) {
-          const nextRect = nextWhite.getBoundingClientRect();
-          const left = (nextRect.left - containerRect.left) - (bw / 2);
-          b.style.left = Math.round(left + keyboardDiv.scrollLeft) + 'px';
-        } else {
-          b.style.left = '0px';
-        }
-      });
-    }
-
-    function activateKey(midi) {
-      const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`);
-      if (el) {
-        el.classList.add('active');
-        el.setAttribute('aria-pressed','true');
-      }
-    }
-    function deactivateKey(midi) {
-      const el = keyboardDiv.querySelector(`.key[data-midi="${midi}"]`);
-      if (el) {
-        el.classList.remove('active');
-        el.setAttribute('aria-pressed','false');
-      }
-    }
-
-    // --- Toast ---
-    let toastTimer = null;
-    function showToast(text, ms = 1200) {
-      if (!toastEl) return;
-      toastEl.textContent = text;
-      toastEl.style.display = 'block';
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toastEl.style.display = 'none';
-      }, ms);
-    }
-
-    // --- Audio: fetch (immediate) then decode on activation ---
-    function ensureAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode.node = audioCtx.createGain();
-        gainNode.node.gain.value = gainNode.value;
-        gainNode.node.connect(audioCtx.destination);
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
-
-    // Fetch-only preload (start immediately on page load). Store arrayBuffers in rawBuffersByNote.
-    async function fetchAllSamples() {
-      const concurrency = 6;
-      const queue = [];
-      for (let i = 0; i < NUM_KEYS; i++) {
-        const midi = START_MIDI + i;
-        queue.push(() => fetchForMidi(midi));
-      }
-      const runners = new Array(concurrency).fill(null).map(async () => {
-        while (queue.length) {
-          const job = queue.shift();
-          try {
-            await job();
-          } catch (err) {
-            console.warn("fetch failed for a key:", err);
-          }
-        }
-      });
-      await Promise.all(runners);
-    }
-
-    async function fetchForMidi(midi) {
-      const noteName = midiToNameFlat(midi);
-      const url = SAMPLE_BASE + noteName + '.mp3';
-      try {
-        const ab = await fetchArrayBufferWithCors(url);
-        rawBuffersByNote[noteName] = {arrayBuffer: ab, midi};
-        fetchedCount++;
+    // === 2. THEO DÕI GPS ===
+    function startGPS() {
+      if (!navigator.geolocation) {
+        statusEl.textContent = "Không hỗ trợ GPS";
         return;
-      } catch (e) {
-        // fallback search near +/-12
-        for (let dist = 1; dist <= 12; dist++) {
-          for (let dir of [+1, -1]) {
-            const m2 = midi + dist * dir;
-            if (m2 < 0 || m2 > 127) continue;
-            const name2 = midiToNameFlat(m2);
-            const url2 = SAMPLE_BASE + name2 + '.mp3';
-            try {
-              const ab2 = await fetchArrayBufferWithCors(url2);
-              rawBuffersByNote[noteName] = {arrayBuffer: ab2, midi: m2};
-              fetchedCount++;
-              return;
-            } catch (_) { }
-          }
-        }
-        // no sample found near this midi
-        throw new Error("No sample found near " + noteName);
       }
+
+      statusEl.textContent = "Đang lấy vị trí...";
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      };
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, speed } = pos.coords;
+
+          // Cập nhật bản đồ
+          const latlng = [latitude, longitude];
+          map.setView(latlng, 17);
+          marker.setLatLng(latlng);
+
+          // Cập nhật tốc độ
+          if (speed === null) {
+            speedEl.textContent = "0";
+            statusEl.textContent = "Di chuyển để đo tốc độ";
+          } else {
+            const speedKmh = (speed * 3.6).toFixed(1);
+            speedEl.textContent = speedKmh;
+            statusEl.textContent = "Đang theo dõi...";
+          }
+        },
+        (err) => {
+          statusEl.textContent = "Lỗi GPS: " + err.message;
+        },
+        options
+      );
     }
 
-    async function fetchArrayBufferWithCors(url) {
-      const resp = await fetch(url, { mode: 'cors' });
-      if (!resp.ok) throw new Error("HTTP " + resp.status + " for " + url);
-      return await resp.arrayBuffer();
-    }
-
-    // After user activates, decode all raw arrayBuffers into AudioBuffers
-    async function decodeAllRawBuffers() {
-      if (!audioCtx) ensureAudioContext();
-      const entries = Object.entries(rawBuffersByNote);
-      decodedCount = 0;
-      for (const [noteName, entry] of entries) {
+    // === 3. MỞ CAMERA (SAU LƯNG, CÓ ZOOM) ===
+    async function toggleCamera() {
+      if (isCameraOn) {
+        // Tắt camera
+        cameraVideo.srcObject?.getTracks().forEach(t => t.stop());
+        cameraVideo.srcObject = null;
+        cameraBtn.textContent = "Bật Camera";
+        cameraBtn.classList.remove('active');
+        isCameraOn = false;
+      } else {
         try {
-          const audioBuffer = await audioCtx.decodeAudioData(entry.arrayBuffer.slice(0));
-          buffersByNote[noteName] = {buffer: audioBuffer, midi: entry.midi};
-          decodedCount++;
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" } // camera sau
+          });
+          cameraVideo.srcObject = stream;
+          cameraBtn.textContent = "Tắt Camera";
+          cameraBtn.classList.add('active');
+          isCameraOn = true;
         } catch (err) {
-          console.warn("Decode failed for", noteName, err);
+          alert("Không mở được camera: " + err.message);
         }
       }
     }
 
-    function playMidi(midi) {
-      const noteName = midiToNameFlat(midi);
-      let entry = buffersByNote[noteName];
-      if (!entry) {
-        entry = findNearestLoaded(midi);
-        if (!entry) {
-          console.warn("No buffer available for", noteName);
-          return;
-        }
+    // === 4. PINCH ZOOM CHO CAMERA (JS) ===
+    let scale = 1;
+    let startDist = 0;
+
+    cameraVideo.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        startDist = getDistance(e.touches[0], e.touches[1]);
       }
-      const buffer = entry.buffer;
-      const source = audioCtx.createBufferSource();
-      source.buffer = buffer;
-      const semitoneDiff = midi - entry.midi;
-      source.playbackRate.value = Math.pow(2, semitoneDiff / 12);
-      source.connect(gainNode.node);
-      source.start();
-    }
-
-    function findNearestLoaded(midiTarget) {
-      let best = null;
-      let bestDist = 999;
-      for (const k of Object.keys(buffersByNote)) {
-        const item = buffersByNote[k];
-        if (!item || !item.buffer) continue;
-        const d = Math.abs(item.midi - midiTarget);
-        if (d < bestDist) {
-          bestDist = d;
-          best = item;
-        }
-      }
-      return best;
-    }
-
-    // --- Computer keyboard mapping ---
-    function setupComputerKeyboardHandling() {
-      let baseC = 60; // C4
-      window.addEventListener('keydown', (e) => {
-        if (e.repeat) return;
-        if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
-          if (e.key === 'ArrowUp') { keyboardOctaveShift += 12; return; }
-          if (e.key === 'ArrowDown') { keyboardOctaveShift -= 12; return; }
-          if (e.key === 'ArrowLeft') { keyboardOctaveShift -= 12; return; }
-          if (e.key === 'ArrowRight') { keyboardOctaveShift += 12; return; }
-        }
-
-        const k = e.key.toLowerCase();
-        const flatKeys = Array.prototype.concat.apply([], KEYBOARD_ROWS); // avoid flat() for compatibility
-        if (flatKeys.includes(k)) {
-          let mapped = null;
-          for (let rowIndex = 0; rowIndex < KEYBOARD_ROWS.length; rowIndex++) {
-            const row = KEYBOARD_ROWS[rowIndex];
-            const idx = row.indexOf(k);
-            if (idx !== -1) {
-              const midi = baseC + rowIndex * 12 + idx + keyboardOctaveShift;
-              mapped = midi;
-              break;
-            }
-          }
-          if (mapped !== null) {
-            e.preventDefault();
-            if (!isActivated) {
-              showToast("Vui lòng bấm 'Bật âm' để nghe âm thanh", 1400);
-              // visual feedback
-              activateKey(mapped);
-              setTimeout(() => deactivateKey(mapped), 160);
-              pressedComputerKeys.add(k);
-              return;
-            }
-            ensureAudioContext();
-            const midiClamped = Math.max(0, Math.min(127, mapped));
-            playMidi(midiClamped);
-            activateKey(midiClamped);
-            pressedComputerKeys.add(k);
-          }
-        }
-      });
-      window.addEventListener('keyup', (e) => {
-        const k = e.key.toLowerCase();
-        if (pressedComputerKeys.has(k)) {
-          let baseC = 60;
-          for (let rowIndex = 0; rowIndex < KEYBOARD_ROWS.length; rowIndex++) {
-            const row = KEYBOARD_ROWS[rowIndex];
-            const idx = row.indexOf(k);
-            if (idx !== -1) {
-              const midi = baseC + rowIndex * 12 + idx + keyboardOctaveShift;
-              deactivateKey(midi);
-            }
-          }
-          pressedComputerKeys.delete(k);
-        }
-      });
-    }
-
-    // --- Activation button handling ---
-    enableBtn.addEventListener('click', async () => {
-      // Prevent double activation
-      if (isActivated) return;
-      isActivated = true;
-      enableBtn.disabled = true;
-      enableBtn.setAttribute('aria-pressed','true');
-
-      // Create/resume audio context
-      ensureAudioContext();
-
-      // Play activation audio via HTMLAudioElement (iOS gesture)
-      try {
-        const audioEl = new Audio(ACTIVATION_SAMPLE);
-        audioEl.crossOrigin = "anonymous";
-        audioEl.playsInline = true;
-        audioEl.volume = 0.95;
-        // slight await to ensure it starts from user gesture
-        await audioEl.play().catch(err => {
-          // even if play fails, continue
-          console.warn("Activation audio play failed:", err);
-        });
-      } catch (err) {
-        console.warn("Activation audio error:", err);
-      }
-
-      // Decode all previously fetched arrayBuffers into AudioBuffers
-      try {
-        await decodeAllRawBuffers();
-      } catch (err) {
-        console.warn("Decoding all buffers failed:", err);
-      }
-
-      // Hide activation overlay (remove from DOM so it's gone)
-      if (enableOverlay && enableOverlay.parentNode) enableOverlay.parentNode.removeChild(enableOverlay);
-      // reposition blacks in case user activated after layout changes
-      requestAnimationFrame(positionBlackKeys);
     });
 
-    // --- Init ---
-    (function init(){
-      buildKeyboardUI();
-      setupComputerKeyboardHandling();
+    cameraVideo.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const currentDist = getDistance(e.touches[0], e.touches[1]);
+        const ratio = currentDist / startDist;
+        scale = Math.max(1, Math.min(scale * ratio, 5)); // giới hạn zoom 1x → 5x
+        cameraVideo.style.transform = `scale(${scale})`;
+        startDist = currentDist;
+      }
+    });
 
-      // Start fetching samples immediately (no need for gesture)
-      fetchAllSamples().catch(err => console.warn("Fetch preload error:", err));
+    function getDistance(t1, t2) {
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      return Math.hypot(dx, dy);
+    }
 
-      window.addEventListener('resize', () => requestAnimationFrame(positionBlackKeys));
-      keyboardDiv.addEventListener('scroll', () => requestAnimationFrame(positionBlackKeys));
-    })();
+    // === 5. KHỞI ĐỘNG ===
+    window.onload = () => {
+      initMap();
+      startGPS();
+
+      // Nút camera
+      cameraBtn.onclick = toggleCamera;
+    };
+
+    // Dừng GPS khi thoát
+    window.onunload = () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (isCameraOn) cameraVideo.srcObject?.getTracks().forEach(t => t.stop());
+    };
   </script>
 </body>
 </html>
