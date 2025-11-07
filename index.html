@@ -237,18 +237,35 @@
                 // Tắt camera
                 videoStream.getTracks().forEach(track => track.stop());
                 videoStream = null;
+                videoElement.srcObject = null;
                 cameraContainer.classList.add('hidden');
                 toggleCameraBtn.textContent = '📷 Mở Camera';
             } else {
                 // Bật camera
                 try {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: 'environment' } 
-                    });
+                    const constraints = {
+                        video: {
+                            facingMode: 'environment',
+                            width: { min: 320, ideal: 640, max: 1920 },
+                            height: { min: 240, ideal: 480, max: 1080 }
+                        },
+                        audio: false
+                    };
+                    
+                    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                     videoElement.srcObject = videoStream;
+                    
+                    // Đảm bảo video bắt đầu phát
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play().catch(e => {
+                            console.error('Lỗi phát video:', e);
+                        });
+                    };
+                    
                     cameraContainer.classList.remove('hidden');
                     toggleCameraBtn.textContent = '📷 Tắt Camera';
                 } catch (err) {
+                    console.error('Lỗi camera:', err);
                     alert('Không thể truy cập camera: ' + err.message);
                 }
             }
