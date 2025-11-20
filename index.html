@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Radio M3U8 cho iPhone cũ</title>
+    <title>Nghe Radio VOH</title>
     <style>
         body { font-family: sans-serif; background: #f7f7f7; padding: 20px; }
         .player-container { background: #fff; box-shadow: 0 2px 8px #dedede; border-radius: 10px; padding: 18px; max-width: 350px; margin: 0 auto; }
@@ -12,10 +12,9 @@
 </head>
 <body>
     <div class="player-container">
-        <h2>Phát Radio m3u8</h2>
+        <h2>Nghe Radio VOH</h2>
         <label for="radioSelect">Chọn kênh radio:</label><br>
         <select id="radioSelect">
-            <!-- Đã xóa kênh Long An -->
             <option value="https://strm.voh.com.vn/radio/channel3/playlist.m3u8">VOH FM 99.9</option>
             <option value="https://strm.voh.com.vn/radio/channel1/playlist.m3u8">VOH FM 95.6</option>
             <option value="https://strm.voh.com.vn/radio/channel5/playlist.m3u8">VOH FM 87.7</option>
@@ -26,10 +25,6 @@
         <button id="pauseBtn" disabled>Tạm dừng</button>
         <br><br>
         <audio id="audio" controls style="width:100%;"></audio>
-        <div style="margin-top: 15px; color:#666; font-size:14px;">
-            Nếu không phát được trên iPhone đời cũ, vui lòng thử lại hoặc sử dụng Safari.<br>
-            Lưu ý: Một số máy quá cũ có thể không hỗ trợ m3u8 audio trực tiếp.
-        </div>
     </div>
     <script>
         var audio = document.getElementById('audio');
