@@ -8,6 +8,7 @@
         body { font-family: sans-serif; background: #f7f7f7; padding: 20px; }
         .player-container { background: #fff; box-shadow: 0 2px 8px #dedede; border-radius: 10px; padding: 18px; max-width: 350px; margin: 0 auto; }
         label, select, button { font-size: 18px; margin-bottom: 10px; }
+        #playBtn[disabled] { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -22,7 +23,6 @@
         </select>
         <br><br>
         <button id="playBtn">Bắt đầu phát</button>
-        <button id="pauseBtn" disabled>Tạm dừng</button>
         <br><br>
         <audio id="audio" controls style="width:100%;"></audio>
     </div>
@@ -30,33 +30,30 @@
         var audio = document.getElementById('audio');
         var radioSelect = document.getElementById('radioSelect');
         var playBtn = document.getElementById('playBtn');
-        var pauseBtn = document.getElementById('pauseBtn');
 
-        // Set initial src for iOS
+        // Trạng thái: lần đầu phát chưa?
+        var isStarted = false;
+
+        // Set initial src, chưa tự động phát
         audio.src = radioSelect.value;
 
-        radioSelect.onchange = function() {
+        // Sự kiện đổi kênh radio
+        radioSelect.onchange = function () {
             audio.src = radioSelect.value;
             audio.load();
-            pauseBtn.disabled = true;
+            // Nếu đã từng bấm bắt đầu phát, thì tự phát luôn khi đổi kênh
+            if (isStarted) {
+                audio.play();
+            }
         };
 
-        playBtn.onclick = function() {
-            audio.src = radioSelect.value; // For iOS reload
+        // Lần đầu bấm nút phát: phát kênh đang chọn, ẩn mờ nút luôn
+        playBtn.onclick = function () {
+            audio.src = radioSelect.value;
             audio.load();
             audio.play();
-            pauseBtn.disabled = false;
-        };
-
-        pauseBtn.onclick = function() {
-            audio.pause();
-        };
-
-        audio.onplay = function() {
-            pauseBtn.disabled = false;
-        };
-        audio.onpause = function() {
-            pauseBtn.disabled = true;
+            isStarted = true;
+            playBtn.disabled = true;
         };
     </script>
 </body>
