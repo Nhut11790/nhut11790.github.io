@@ -2,65 +2,66 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Phát Radio m3u8 trên iPhone cũ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Radio M3U8 cho iPhone cũ</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f7f7f7; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: #fff; box-shadow: 0 2px 8px #ddd; border-radius: 10px; padding: 20px; }
-        label, select, button { font-size: 17px; margin-bottom: 10px; }
-        video { width:100%; height:40px; background:#eee; border-radius: 3px; }
-        .note { margin-top: 12px; font-size: 13px; color: #555; }
-        .open-link { margin-top: 10px; }
+        body { font-family: sans-serif; background: #f7f7f7; padding: 20px; }
+        .player-container { background: #fff; box-shadow: 0 2px 8px #dedede; border-radius: 10px; padding: 18px; max-width: 350px; margin: 0 auto; }
+        label, select, button { font-size: 18px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Nghe Radio M3U8</h2>
+    <div class="player-container">
+        <h2>Phát Radio m3u8</h2>
         <label for="radioSelect">Chọn kênh radio:</label><br>
         <select id="radioSelect">
-            <option value="https://cdn.la34.com.vn/live/2851dd3d9016ac74d84b0c4a7a659f76891/chunklist.m3u8" data-name="Long An">Long An</option>
-            <option value="https://strm.voh.com.vn/radio/channel3/playlist.m3u8" data-name="VOH FM 99.9">VOH FM 99.9</option>
-            <option value="https://strm.voh.com.vn/radio/channel1/playlist.m3u8" data-name="VOH FM 95.6">VOH FM 95.6</option>
-            <option value="https://strm.voh.com.vn/radio/channel5/playlist.m3u8" data-name="VOH FM 87.7">VOH FM 87.7</option>
-            <option value="https://strm.voh.com.vn/radio/channel2/playlist.m3u8" data-name="VOH AM 610">VOH AM 610</option>
+            <!-- Đã xóa kênh Long An -->
+            <option value="https://strm.voh.com.vn/radio/channel3/playlist.m3u8">VOH FM 99.9</option>
+            <option value="https://strm.voh.com.vn/radio/channel1/playlist.m3u8">VOH FM 95.6</option>
+            <option value="https://strm.voh.com.vn/radio/channel5/playlist.m3u8">VOH FM 87.7</option>
+            <option value="https://strm.voh.com.vn/radio/channel2/playlist.m3u8">VOH AM 610</option>
         </select>
         <br><br>
-        <video id="radioPlayer" controls poster="" preload="none">
-            <source src="https://cdn.la34.com.vn/live/2851dd3d9016ac74d84b0c4a7a659f76891/chunklist.m3u8" type="application/x-mpegURL">
-            Thiết bị hiện tại không hỗ trợ HLS m3u8 trực tiếp.
-        </video>
-        <div class="open-link">
-            <button id="openInSafari">Mở trực tiếp bằng Safari</button>
-        </div>
-        <div class="note">
-            <b>Lưu ý dành cho iPhone đời cũ (iOS ≤ 10):</b><br>
-            Nếu không phát được bằng nút phía trên, hãy bấm "Mở trực tiếp bằng Safari" hoặc copy link phía dưới, dán vào Safari.<br>
-            Một số máy cũ chỉ phát m3u8 tốt khi mở trực tiếp, không qua HTML audio/video.
-        </div>
-        <div class="note" id="copyLinkDiv">
-            Link trực tiếp: <span id="directLink">https://cdn.la34.com.vn/live/2851dd3d9016ac74d84b0c4a7a659f76891/chunklist.m3u8</span>
+        <button id="playBtn">Bắt đầu phát</button>
+        <button id="pauseBtn" disabled>Tạm dừng</button>
+        <br><br>
+        <audio id="audio" controls style="width:100%;"></audio>
+        <div style="margin-top: 15px; color:#666; font-size:14px;">
+            Nếu không phát được trên iPhone đời cũ, vui lòng thử lại hoặc sử dụng Safari.<br>
+            Lưu ý: Một số máy quá cũ có thể không hỗ trợ m3u8 audio trực tiếp.
         </div>
     </div>
     <script>
-        var player = document.getElementById('radioPlayer');
+        var audio = document.getElementById('audio');
         var radioSelect = document.getElementById('radioSelect');
-        var safariBtn = document.getElementById('openInSafari');
-        var directLinkSpan = document.getElementById('directLink');
+        var playBtn = document.getElementById('playBtn');
+        var pauseBtn = document.getElementById('pauseBtn');
 
-        // Khởi tạo
-        player.src = radioSelect.value;
-        directLinkSpan.textContent = radioSelect.value;
+        // Set initial src for iOS
+        audio.src = radioSelect.value;
 
-        // Khi đổi kênh radio
         radioSelect.onchange = function() {
-            player.src = radioSelect.value;
-            player.load();
-            directLinkSpan.textContent = radioSelect.value;
+            audio.src = radioSelect.value;
+            audio.load();
+            pauseBtn.disabled = true;
         };
 
-        // Mở trực tiếp link trong Safari/tab mới
-        safariBtn.onclick = function() {
-            window.open(radioSelect.value, '_blank');
+        playBtn.onclick = function() {
+            audio.src = radioSelect.value; // For iOS reload
+            audio.load();
+            audio.play();
+            pauseBtn.disabled = false;
+        };
+
+        pauseBtn.onclick = function() {
+            audio.pause();
+        };
+
+        audio.onplay = function() {
+            pauseBtn.disabled = false;
+        };
+        audio.onpause = function() {
+            pauseBtn.disabled = true;
         };
     </script>
 </body>
