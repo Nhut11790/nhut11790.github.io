@@ -50,11 +50,13 @@
     .transpose-status { color:#FFD700; font-size:15px; font-weight:bold; letter-spacing:1px;}
     .created-by-footer { text-align: center; color: #fff; font-size: 15px; opacity: 0.91; margin: 28px auto 0 auto; width: 100%; }
     .footer-links-bar {
-      margin: 10px 0 15px 0;
-      text-align: center;
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 20px;
+      margin: 10px 0 15px 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
     }
     .footer-link {
       color: #FFD700;
@@ -66,6 +68,8 @@
       background: linear-gradient(90deg,#2ac7ec11 0%, #FFD70022 100%);
       transition: background .2s, color .2s;
       box-shadow: 0 2px 6px rgba(180,120,10,0.09);
+      white-space: nowrap;
+      flex: 0 0 auto;
     }
     .footer-link:hover {
       background: linear-gradient(90deg,#febca5 0%, #FFD700 100%);
@@ -154,7 +158,7 @@
       font-weight: bold;
     }
 
-    @media(max-width: 1000px){
+    @media (max-width: 1000px){
       .container{padding:13px 0;}
       .piano-scrollbar-container, .piano-container { width: 100%; max-width: 100vw;}
     }
@@ -163,7 +167,10 @@
       .container{padding:6px 0;}
       .piano-scrollbar-container, .piano-container{max-width:99vw; width:99vw;}
       .title-bar {flex-direction: column;}
-      .footer-links-bar {flex-direction: column; gap: 7px; margin: 10px 0 14px 0;}
+      .footer-links-bar {
+        flex-direction: row !important;
+        gap: 12px;
+      }
     }
   </style>
 </head>
@@ -214,13 +221,10 @@
     <a class="footer-link" href="https://nhut990.github.io/piano/4/" target="_blank" rel="noopener">Piano 4</a>
   </div>
   <script>
-    // ======= CHÍNH SỬA ĐÁP ỨNG YÊU CẦU =======
-
+    // Piano logic
     const sampleBaseURL = "https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/";
     const sampleInstrument = { name: '🎹 Acoustic Grand Piano', folder: 'acoustic_grand_piano-mp3' };
     const chromatic = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-
-    // Bàn phím xuất hiện: C2-B7
     const WHITE_NOTES = [];
     for (let o = 2; o <= 7; o++) {
       WHITE_NOTES.push('C'+o,'D'+o,'E'+o,'F'+o,'G'+o,'A'+o,'B'+o);
@@ -234,7 +238,6 @@
       BLACK_NOTES_LAYOUT.push({note:"A#"+o, pos:"A"+o});
     }
 
-    // Bộ nốt DỰ PHÒNG đầy đủ cho transpose: C1-B8
     function noteList(octaveFrom, octaveTo) {
       let out = [];
       for(let o=octaveFrom; o<=octaveTo; o++)
@@ -243,7 +246,6 @@
     }
     const PRELOAD_NOTES = noteList(1, 8);
 
-    // Chuyển nốt thăng (#) sang tên giáng (b) đúng định dạng file sample
     function convertSharpToFlat(note) {
       const sharpToFlat = {'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'};
       let m = note.match(/^([A-G]#?)(\d)$/);
@@ -253,7 +255,6 @@
       return name + octave;
     }
 
-    // All notes for freq map
     const pianoNotesAll = PRELOAD_NOTES;
     const notesFreq = {};
     pianoNotesAll.forEach(function(note){
@@ -268,14 +269,13 @@
     let isMuted = true, isAudioActivated = false;
     let sampleBuffers = {};
     let hasPreload = false;
-    let transpose = 0; // -12 ~ +12
+    let transpose = 0;
 
     function initAudioContext() {
       if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
       if (audioContext.state === 'suspended') audioContext.resume();
     }
 
-    // ----- Preload đầy đủ sample cho tất cả nốt cần thiết -----
     async function preloadSamples() {
       let notesList = PRELOAD_NOTES;
       let folder = sampleInstrument.folder;
@@ -311,18 +311,20 @@
         await preloadSamples();
       }
     }
+
     function showAlert(msg) {
       const alertBox = document.getElementById("alert");
       alertBox.textContent = msg;
       alertBox.style.display = "block";
       setTimeout(() => { alertBox.style.display = "none"; }, 2100);
     }
-    // ========== PIANO RENDER ===========
+
     function getWhiteKeyPosX() {
       let obj = {};
       WHITE_NOTES.forEach((note,i)=>{obj[note]=i*whiteKeyWidth;});
       return obj;
     }
+
     function renderPiano() {
       const whiteKeyPosX = getWhiteKeyPosX();
       const pianoDiv = document.getElementById('piano');
@@ -447,7 +449,7 @@
       const pianoContainer = document.querySelector('.piano-container');
       pianoContainer.addEventListener('scroll', updateScrollbarThumb);
     }
-    // ========== KÍCH THƯỚC PHÍM ===========
+
     const keySizeSlider = document.getElementById('keySizeSlider');
     keySizeSlider.addEventListener('input', function() {
       whiteKeyWidth = parseInt(this.value);
@@ -460,7 +462,7 @@
       renderPiano();
       updateScrollbarThumb();
     });
-    // ========== TRANSPOSE ===========
+
     function setTransposeUI() {
       let status = document.getElementById('transposeStatus');
       let txt = "Transpose: ";
@@ -479,7 +481,7 @@
       transpose=0;setTransposeUI();
     });
     setTransposeUI();
-    // ========== PHÁT ÂM VÀ XỬ LÝ SAMPLE ===========
+
     function transposeNote(note, semitone) {
       let m = note.match(/^([A-G]#?)(\d)$/);
       if (!m) return note;
@@ -531,7 +533,7 @@
       let tNote=transposeNote(note, transpose);
       playSample(tNote, 1.0, 1110);
     }
-    // ========== ÂM THANH ===========
+
     const soundToggle = document.getElementById('soundToggle');
     const soundIcon = document.getElementById('soundIcon');
     const soundStatus = document.getElementById('soundStatus');
@@ -555,7 +557,7 @@
         alert('⚠️ Không thể kích hoạt âm thanh.\n\nLỗi: ' + error.message);
       }
     });
-    // ========== DRAG PIANO =============
+
     (function() {
       const pianoContainer = document.querySelector('.piano-container');
       let isPanning = false, startX = 0, scrollStart = 0;
@@ -601,7 +603,7 @@
         }
       });
     })();
-    // ======= KHỞI TẠO =======
+
     window.addEventListener('load', async () => {
       initAudioContext();
       await ensureSamples();
