@@ -76,7 +76,6 @@
       color: #680;
       text-decoration: underline;
     }
-
     .control-bar {
       text-align: center; margin-bottom: 4px;
       display: flex; justify-content: center; gap:14px; align-items:center; flex-wrap: wrap;
@@ -157,7 +156,6 @@
       opacity: 0.68;
       font-weight: bold;
     }
-
     @media (max-width: 1000px){
       .container{padding:13px 0;}
       .piano-scrollbar-container, .piano-container { width: 100%; max-width: 100vw;}
@@ -221,7 +219,7 @@
     <a class="footer-link" href="https://nhut990.github.io/piano/4/" target="_blank" rel="noopener">Piano 4</a>
   </div>
   <script>
-    // Piano logic
+    // Piano logic với anti-mất tiếng khi bấm nhanh
     const sampleBaseURL = "https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/";
     const sampleInstrument = { name: '🎹 Acoustic Grand Piano', folder: 'acoustic_grand_piano-mp3' };
     const chromatic = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -237,7 +235,6 @@
       BLACK_NOTES_LAYOUT.push({note:"G#"+o, pos:"G"+o});
       BLACK_NOTES_LAYOUT.push({note:"A#"+o, pos:"A"+o});
     }
-
     function noteList(octaveFrom, octaveTo) {
       let out = [];
       for(let o=octaveFrom; o<=octaveTo; o++)
@@ -245,7 +242,6 @@
       return out;
     }
     const PRELOAD_NOTES = noteList(1, 8);
-
     function convertSharpToFlat(note) {
       const sharpToFlat = {'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'};
       let m = note.match(/^([A-G]#?)(\d)$/);
@@ -254,7 +250,6 @@
       if (sharpToFlat[name]) return sharpToFlat[name] + octave;
       return name + octave;
     }
-
     const pianoNotesAll = PRELOAD_NOTES;
     const notesFreq = {};
     pianoNotesAll.forEach(function(note){
@@ -263,19 +258,16 @@
       let midi = 12*(parseInt(m[2])+1)+ORDER[m[1]];
       notesFreq[note]=440 * Math.pow(2, (midi-69)/12);
     });
-
     let whiteKeyWidth = 33, blackKeyWidth = 22, whiteKeyHeight = 180, blackKeyHeight = 110;
     let audioContext = null;
     let isMuted = true, isAudioActivated = false;
     let sampleBuffers = {};
     let hasPreload = false;
     let transpose = 0;
-
     function initAudioContext() {
       if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
       if (audioContext.state === 'suspended') audioContext.resume();
     }
-
     async function preloadSamples() {
       let notesList = PRELOAD_NOTES;
       let folder = sampleInstrument.folder;
@@ -303,7 +295,6 @@
       }
       hasPreload = true;
     }
-
     async function ensureSamples() {
       initAudioContext();
       if (!hasPreload) {
@@ -311,20 +302,17 @@
         await preloadSamples();
       }
     }
-
     function showAlert(msg) {
       const alertBox = document.getElementById("alert");
       alertBox.textContent = msg;
       alertBox.style.display = "block";
       setTimeout(() => { alertBox.style.display = "none"; }, 2100);
     }
-
     function getWhiteKeyPosX() {
       let obj = {};
       WHITE_NOTES.forEach((note,i)=>{obj[note]=i*whiteKeyWidth;});
       return obj;
     }
-
     function renderPiano() {
       const whiteKeyPosX = getWhiteKeyPosX();
       const pianoDiv = document.getElementById('piano');
@@ -346,11 +334,8 @@
         key.style.height = whiteKeyHeight+"px";
         key.style.paddingBottom = Math.round(whiteKeyHeight/45)+"px";
         key.style.fontSize = Math.max(9,Math.round(whiteKeyWidth/3))+"px";
-        key.addEventListener('mousedown', () => { key.classList.add('active'); playNote(note,key); });
-        key.addEventListener('touchstart', (e) => { e.preventDefault(); key.classList.add('active'); playNote(note,key); });
-        key.addEventListener('mouseup', () => { key.classList.remove('active'); });
-        key.addEventListener('mouseleave', () => { key.classList.remove('active'); });
-        key.addEventListener('touchend', () => { key.classList.remove('active'); });
+        key.addEventListener('mousedown', () => { playNote(note, key); });
+        key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(note,key); });
         pianoDiv.appendChild(key);
       });
       BLACK_NOTES_LAYOUT.forEach(bl=>{
@@ -365,14 +350,30 @@
         key.style.height = blackKeyHeight+"px";
         key.style.paddingBottom = Math.round(blackKeyHeight/35)+"px";
         key.style.fontSize = Math.max(7,Math.round(blackKeyWidth/4))+"px";
-        key.addEventListener('mousedown', () => { key.classList.add('active'); playNote(bl.note,key); });
-        key.addEventListener('touchstart', (e) => { e.preventDefault(); key.classList.add('active'); playNote(bl.note,key); });
-        key.addEventListener('mouseup', () => { key.classList.remove('active'); });
-        key.addEventListener('mouseleave', () => { key.classList.remove('active'); });
-        key.addEventListener('touchend', () => { key.classList.remove('active'); });
+        key.addEventListener('mousedown', () => { playNote(bl.note, key); });
+        key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(bl.note,key); });
         pianoDiv.appendChild(key);
       });
       updateScrollbarThumb();
+    }
+    // CHẶN đàn khi chưa có preload, xử lý "anti-mất tiếng"
+    async function playNote(note, keyElement) {
+      // Nếu chưa có preload xong, cảnh báo và không phát
+      if (!isAudioActivated) {
+        showAlert("Bạn cần bật âm bằng nút 🔇 trước khi chơi đàn!");
+        return;
+      }
+      if (!hasPreload) {
+        showAlert("⏳ Đang tải mẫu âm thanh, vui lòng chờ...");
+        return;
+      }
+      // Hiệu ứng key active
+      if(keyElement){
+        keyElement.classList.add('active');
+        setTimeout(()=>{keyElement.classList.remove('active');},160);
+      }
+      let tNote = transposeNote(note, transpose);
+      playSample(tNote, 1.0, 1110);
     }
     function scrollPianoToPercent(percent) {
       const pianoContainer = document.querySelector('.piano-container');
@@ -449,7 +450,6 @@
       const pianoContainer = document.querySelector('.piano-container');
       pianoContainer.addEventListener('scroll', updateScrollbarThumb);
     }
-
     const keySizeSlider = document.getElementById('keySizeSlider');
     keySizeSlider.addEventListener('input', function() {
       whiteKeyWidth = parseInt(this.value);
@@ -462,7 +462,6 @@
       renderPiano();
       updateScrollbarThumb();
     });
-
     function setTransposeUI() {
       let status = document.getElementById('transposeStatus');
       let txt = "Transpose: ";
@@ -481,7 +480,6 @@
       transpose=0;setTransposeUI();
     });
     setTransposeUI();
-
     function transposeNote(note, semitone) {
       let m = note.match(/^([A-G]#?)(\d)$/);
       if (!m) return note;
@@ -519,21 +517,6 @@
       src.start();
       src.stop(audioContext.currentTime+Math.min(duration/1000,src.buffer.duration/src.playbackRate.value));
     }
-    async function playNote(note, keyElement) {
-      if(!isAudioActivated){
-        showAlert("Bạn cần bật âm bằng nút 🔇 trước khi chơi đàn!");
-        return;
-      }
-      initAudioContext();
-      if(keyElement){
-        keyElement.classList.add('active');
-        setTimeout(()=>{keyElement.classList.remove('active');},200);
-      }
-      await ensureSamples();
-      let tNote=transposeNote(note, transpose);
-      playSample(tNote, 1.0, 1110);
-    }
-
     const soundToggle = document.getElementById('soundToggle');
     const soundIcon = document.getElementById('soundIcon');
     const soundStatus = document.getElementById('soundStatus');
@@ -557,7 +540,6 @@
         alert('⚠️ Không thể kích hoạt âm thanh.\n\nLỗi: ' + error.message);
       }
     });
-
     (function() {
       const pianoContainer = document.querySelector('.piano-container');
       let isPanning = false, startX = 0, scrollStart = 0;
@@ -603,7 +585,6 @@
         }
       });
     })();
-
     window.addEventListener('load', async () => {
       initAudioContext();
       await ensureSamples();
