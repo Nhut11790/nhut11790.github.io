@@ -1,579 +1,908 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Piano_Nhựt</title>
-  <!-- Icon cho iOS và Web -->
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/icon_piano.jpg">
-  <meta name="apple-mobile-web-app-title" content="Piano_Nhựt">
-  <meta name="application-name" content="Piano_Nhựt">
-  <link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/icon_piano.jpg">
-  <style>
-    body { font-family: Arial, sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); margin:0; padding:0; min-height:100vh; }
-    .container { width:100%; max-width:1600px; margin:auto; position:relative; padding:28px 0 14px;}
-    h1 { color: #FFD700; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 10px; display:flex; flex-direction:column; align-items:center; }
-    .control-bar {
-      text-align: center; margin-bottom: 9px;
-      display: flex; justify-content: center; gap:14px; align-items:center; flex-wrap: wrap;
-    }
-    .size-label {color:#fff;font-weight:bold;font-size:15px;margin-right:3px;}
-    .size-slider {width: 120px;height: 24px;}
-    .sound-control {
-      text-align: center;
-      margin-bottom: 9px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      position: relative;z-index:101;
-    }
-    .sound-toggle { background: linear-gradient(145deg, #2ac7ec, #1594bb); color: white; border: none;
-      border-radius: 50%; width: 36px; height: 36px; font-size: 19px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.22);
-      transition: all 0.2s; display: flex; align-items: center; justify-content: center;}
-    .sound-toggle.muted { background: linear-gradient(145deg, #f44336, #d32f2f);}
-    .sound-toggle:active { transform: scale(0.96); }
-    .sound-status { color: white; font-size: 12px; font-weight: bold; margin-top: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.14); }
-    .loading-status { text-align: center; color: #FFD700; font-size: 13px; margin: 7px 0 10px 0; font-weight: bold; pointer-events:none;}
-    #alert { text-align: center; color: #f44336; background: #fff2f2; border-radius: 7px; font-size: 14px; font-weight:bold;
-      margin: 11px auto 0 auto; max-width: 320px; padding: 8px 11px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #ffd9d9;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển đổi WebP sang JPG/PNG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .piano-container {
-      background: rgba(0,0,0,0.27); backdrop-filter: blur(8px);
-      border-radius: 10px; padding: 0px; box-shadow: 0 9px 28px rgba(0,0,0,0.39);
-      margin: auto;
-      width: 100%; overflow-x: auto;
-      transition: all 0.2s;
-      cursor: grab;
-      position: relative;
-      box-sizing: border-box;
-    }
-    .piano {
-      position: relative; height: 180px;
-      margin: 0 auto;
-      user-select: none;
-      transition: all 0.25s;
-      box-sizing: border-box;
-      /* width sẽ đặt động bằng JS */
-    }
-    .white-key { position: absolute; background: linear-gradient(to bottom, #fff 0%, #ececec 100%);
-      border: 2px solid #222; border-radius: 0 0 6px 6px; cursor: pointer; user-select: none; display: flex;
-      align-items: flex-end; justify-content: center; font-size: 9px; color: #555; font-weight: bold; transition: all 0.06s;}
-    .white-key.active { background: linear-gradient(137deg, #2ac7ec 0%, #76e2ff 100%); color: #1d8a95;}
-    .white-key:active { background: linear-gradient(137deg, #b3e5fc 0%, #2ac7ec 100%);}
-    .black-key { position: absolute; background: linear-gradient(to bottom, #444 0%, #091a21 100%);
-      border: 1px solid #111; border-radius: 0 0 4px 4px; cursor: pointer; user-select: none; z-index: 9; color: white;
-      display: flex; align-items: flex-end; justify-content: center; font-size: 7px; font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.52); transition: all 0.05s;}
-    .black-key.active { background: linear-gradient(137deg, #2ac7ec 0%, #76e2ff 100%); color: #1d8a95;}
-    .black-key:active { background: linear-gradient(137deg, #b3e5fc 0%, #2ac7ec 100%);}
-    .created-by-footer { text-align: center; color: #fff; font-size: 15px; opacity: 0.91; margin: 29px auto 4px auto; width: 100%; }
-    .code-links-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 28px;
-      margin-bottom: 18px;
-      margin-top: 2px;
-    }
-    .code-links-row a {
-      color: #FFD700;
-      font-weight: bold;
-      font-size: 16px;
-      text-decoration: underline;
-      transition: color 0.19s;
-    }
-    .code-links-row a:hover {
-      color: #fff700;
-      text-shadow: 0 2px 7px #0078a9;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    .piano-scrollbar-container {
-      width: 100%; margin: 2px auto 0 auto; user-select: none; touch-action: none;
-      padding-bottom: 2px;
-      background: rgba(40,50,140,0.08);
-      border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      box-sizing: border-box;
-    }
-    .piano-scrollbar-track {
-      position: relative;
-      width: 98%; height: 38px;
-      background: linear-gradient(90deg,#fff 20%, #e4e4ef 70%);
-      border-radius: 19px;
-      box-shadow: 0 1px 7px rgba(0,0,0,0.16);
-      overflow: hidden;
-      margin: auto;
-      display: flex; align-items: center;
-    }
-    .piano-scrollbar-thumb {
-      position: absolute;
-      top: 0;
-      height: 98%;
-      width: 62px;
-      background: linear-gradient(135deg,#6656df 0%,#43dafc 100%);
-      border-radius: 16px;
-      cursor: pointer;
-      box-shadow: 0 3px 12px rgba(76,89,255,0.23);
-      border: 2px solid #FFF3;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: bold; color: #fff; font-size: 16px; text-shadow: 0 1px 4px #6669;
-      transition: box-shadow 0.11s, left 0.18s cubic-bezier(0.7,0,0.3,1);
-      z-index: 3;
-    }
-    .piano-scrollbar-thumb:active {
-      box-shadow: 0 4px 16px rgba(40,50,140,0.19);
-      background: linear-gradient(135deg,#43dafc 0%,#6656df 100%);
-    }
-    .piano-scrollbar-labels {
-      position: absolute;
-      width: 100%; height: 100%; top: 0; left: 0;
-      display: flex; align-items: center; pointer-events: none;
-    }
-    .piano-scrollbar-label {
-      flex: 1;
-      text-align: center;
-      font-size: 11px;
-      color: #443;
-      opacity: 0.68;
-      font-weight: bold;
-    }
-    @media(max-width: 1000px){
-      .container{padding:13px 0;}
-      .piano-scrollbar-container, .piano-container { width: 100%; max-width: 100vw;}
-      .code-links-row { gap: 18px; font-size: 15px;}
-    }
-    @media (max-width: 700px){
-      .piano-container{padding:3px;}
-      .container{padding:6px 0;}
-      .piano-scrollbar-container, .piano-container{max-width:99vw; width:99vw;}
-      .code-links-row { gap: 10px; font-size: 14px;}
-    }
-  </style>
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .drag-drop-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f8f9ff;
+        }
+
+        .drag-drop-area:hover {
+            border-color: #764ba2;
+            background-color: #f0f2ff;
+        }
+
+        .drag-drop-area.dragover {
+            border-color: #764ba2;
+            background-color: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .drag-drop-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .preview-section {
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .preview-image {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            object-fit: contain;
+            background-color: #f5f5f5;
+            margin-bottom: 15px;
+        }
+
+        .image-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .settings-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-label {
+            display: block;
+            color: #333;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .quality-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            background: #764ba2;
+        }
+
+        .quality-value {
+            min-width: 40px;
+            text-align: center;
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .format-selection {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .format-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .format-option:hover {
+            border-color: #667eea;
+            background-color: #f9f9ff;
+        }
+
+        .format-option input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .format-option.selected {
+            border-color: #667eea;
+            background-color: #e8ebff;
+        }
+
+        .format-label {
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .button-group.active {
+            display: grid;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .download-section {
+            display: none;
+        }
+
+        .download-section.active {
+            display: block;
+        }
+
+        .download-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .download-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .download-info {
+            flex: 1;
+        }
+
+        .download-filename {
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .download-size {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-percentage {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .progress-step {
+            color: #999;
+        }
+
+        .progress-step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .format-selection {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .download-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .download-btn {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="sound-control">
-      <button class="sound-toggle muted" id="soundToggle">
-        <span id="soundIcon">🔇</span>
-      </button>
-      <span class="sound-status" id="soundStatus">Tắt âm</span>
-    </div>
-    <h1>Piano_Nhựt<br /><span style="font-size:20px; color:#ffd700; font-weight:normal">🎹 Đàn Piano 72 phím (C2-B7)</span></h1>
-    <div class="control-bar">
-      <span class="size-label">Kích thước phím:</span>
-      <input type="range" min="18" max="54" value="33" step="1" class="size-slider" id="keySizeSlider">
-    </div>
-    <div class="piano-scrollbar-container">
-      <div class="piano-scrollbar-track" id="pianoScrollbarTrack">
-        <div class="piano-scrollbar-thumb" id="pianoScrollbarThumb">⇆</div>
-        <div class="piano-scrollbar-labels">
-          <span class="piano-scrollbar-label">C2</span>
-          <span class="piano-scrollbar-label">C3</span>
-          <span class="piano-scrollbar-label">C4</span>
-          <span class="piano-scrollbar-label">C5</span>
-          <span class="piano-scrollbar-label">C6</span>
-          <span class="piano-scrollbar-label">C7</span>
+    <div class="container">
+        <h1>🖼️ Chuyển đổi WebP</h1>
+        <p class="subtitle">Chuyển đổi hình ảnh WebP sang JPG hoặc PNG</p>
+
+        <div class="message" id="message"></div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="drag-drop-area" id="dragDropArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Kéo hình ảnh vào đây</div>
+                <div class="upload-subtext">hoặc nhấp để chọn file</div>
+                <input type="file" id="fileInput" accept="image/webp,.webp,image/*" />
+            </div>
         </div>
-      </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section" id="previewSection">
+            <div class="preview-title">Xem trước hình ảnh</div>
+            <img id="previewImage" class="preview-image" alt="Preview">
+            <div class="image-info" id="imageInfo">
+                <div class="info-row">
+                    <span class="info-label">Tên file:</span>
+                    <span class="info-value" id="fileName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Kích thước:</span>
+                    <span class="info-value" id="fileSize">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Định dạng:</span>
+                    <span class="info-value" id="fileFormat">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Kích thước ảnh:</span>
+                    <span class="info-value" id="imageDimensions">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="settings-section" id="settingsSection">
+            <div class="settings-title">Cài đặt chuyển đổi</div>
+
+            <div class="setting-group">
+                <label class="setting-label">Chất lượng hình ảnh</label>
+                <div class="quality-control">
+                    <input type="range" id="qualitySlider" min="50" max="100" value="95" step="5">
+                    <span class="quality-value" id="qualityValue">95%</span>
+                </div>
+                <div class="upload-subtext" style="margin-top: 5px;">
+                    ⭐ 90-100: Chất lượng cao (file lớn) | 70-85: Cân bằng | 50-65: Chất lượng thấp (file nhỏ)
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Định dạng đầu ra</label>
+                <div class="format-selection">
+                    <label class="format-option selected" onclick="toggleFormat(this, 'jpg')">
+                        <input type="checkbox" name="format" value="jpg" checked>
+                        <span class="format-label">JPG</span>
+                    </label>
+                    <label class="format-option" onclick="toggleFormat(this, 'png')">
+                        <input type="checkbox" name="format" value="png">
+                        <span class="format-label">PNG</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section (NEW) -->
+        <div class="progress-section" id="progressSection">
+            <div class="progress-title">
+                <span>⏳ Đang xử lý...</span>
+                <span class="progress-percentage" id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-detail">
+                <span class="progress-step active" id="stepReading">1️⃣ Đọc file</span>
+                <span class="progress-step" id="stepProcessing">2️⃣ Xử lý</span>
+                <span class="progress-step" id="stepConverting">3️⃣ Chuyển đổi</span>
+            </div>
+        </div>
+
+        <!-- Button Group -->
+        <div class="button-group" id="buttonGroup">
+            <button class="btn-primary" id="convertBtn" onclick="convertImage()">⚡ Chuyển đổi</button>
+            <button class="btn-secondary" onclick="resetForm()">↺ Đặt lại</button>
+        </div>
+
+        <!-- Download Section -->
+        <div class="download-section" id="downloadSection">
+            <div class="download-title">📥 Tải xuống hình ảnh</div>
+            <div id="downloadList"></div>
+        </div>
+
+        <div class="footer-note">
+            ✨ Hỗ trợ chuyển đổi các định dạng hình ảnh phổ biến sang JPG/PNG
+        </div>
     </div>
-    <div class="loading-status" id="loadingStatus">⏳ Đang tải Piano...</div>
-    <div id="alert"></div>
-    <div class="piano-container">
-      <div class="piano" id="piano"></div>
-    </div>
-  </div>
-  <div class="created-by-footer">Created by Minh Nhựt</div>
-  <div class="code-links-row">
-    <a href="https://nhut990.github.io/piano/2/" target="_blank">Piano_2</a>
-    <a href="https://nhut990.github.io/piano/3/" target="_blank">Piano_3</a>
-    <a href="https://nhut990.github.io/piano/4/" target="_blank">Piano_4</a>
-    <a href="https://nhut990.github.io/piano/5/" target="_blank">Piano_5</a>
-  </div>
-  <script>
-    const WHITE_NOTES = [
-      "C2","D2","E2","F2","G2","A2","B2",
-      "C3","D3","E3","F3","G3","A3","B3",
-      "C4","D4","E4","F4","G4","A4","B4",
-      "C5","D5","E5","F5","G5","A5","B5",
-      "C6","D6","E6","F6","G6","A6","B6",
-      "C7","D7","E7","F7","G7","A7","B7"
-    ];
-    const BLACK_NOTES_LAYOUT = [
-      {note:"C#2",pos:"C2"}, {note:"D#2",pos:"D2"},
-      {note:"F#2",pos:"F2"}, {note:"G#2",pos:"G2"}, {note:"A#2",pos:"A2"},
-      {note:"C#3",pos:"C3"}, {note:"D#3",pos:"D3"},
-      {note:"F#3",pos:"F3"}, {note:"G#3",pos:"G3"}, {note:"A#3",pos:"A3"},
-      {note:"C#4",pos:"C4"}, {note:"D#4",pos:"D4"},
-      {note:"F#4",pos:"F4"}, {note:"G#4",pos:"G4"}, {note:"A#4",pos:"A4"},
-      {note:"C#5",pos:"C5"}, {note:"D#5",pos:"D5"},
-      {note:"F#5",pos:"F5"}, {note:"G#5",pos:"G5"}, {note:"A#5",pos:"A5"},
-      {note:"C#6",pos:"C6"}, {note:"D#6",pos:"D6"},
-      {note:"F#6",pos:"F6"}, {note:"G#6",pos:"G6"}, {note:"A#6",pos:"A6"},
-      {note:"C#7",pos:"C7"}, {note:"D#7",pos:"D7"},
-      {note:"F#7",pos:"F7"}, {note:"G#7",pos:"G7"}, {note:"A#7",pos:"A7"},
-    ];
-    let whiteKeyWidth = 33, blackKeyWidth = 22, whiteKeyHeight = 180, blackKeyHeight = 110;
-    function getWhiteKeyPosX() {
-      let obj = {};
-      WHITE_NOTES.forEach((note,i)=>{obj[note]=i*whiteKeyWidth;});
-      return obj;
-    }
-    const pianoNotesAll = WHITE_NOTES.concat(BLACK_NOTES_LAYOUT.map(n=>n.note)).sort((a,b) => {
-      function noteMidi(note) {
-        const ORDER = {"C":0,"C#":1,"D":2,"D#":3,"E":4,"F":5,"F#":6,"G":7,"G#":8,"A":9,"A#":10,"B":11};
-        let m = note.match(/^([A-G]#?)(\d)$/);
-        return 12*(parseInt(m[2])+1) + ORDER[m[1]];
-      }
-      return noteMidi(a)-noteMidi(b);
-    });
-    const notesFreq = {};
-    pianoNotesAll.forEach(function(note){
-      const ORDER = {"C":0,"C#":1,"D":2,"D#":3,"E":4,"F":5,"F#":6,"G":7,"G#":8,"A":9,"A#":10,"B":11};
-      let m = note.match(/^([A-G]#?)(\d)$/);
-      let midi = 12*(parseInt(m[2])+1)+ORDER[m[1]];
-      notesFreq[note]=440 * Math.pow(2, (midi-69)/12);
-    });
-    const sampleInstrument = { name: '🎹 Acoustic Grand Piano', folder: 'acoustic_grand_piano-mp3' };
-    const sampleBaseURL = "https://raw.githubusercontent.com/Nhut11790/nhut11790.github.io/main/tieng/";
-    let audioContext = null;
-    let isMuted = true, isAudioActivated = false;
-    let sampleBuffers = {};
-    let hasPreload = false;
-    function initAudioContext() {
-      if (!audioContext) { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-      if (audioContext.state === 'suspended') audioContext.resume();
-    }
-    function convertSharpToFlat(note) {
-      const sharpToFlat = { 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' };
-      for (let sharp in sharpToFlat) {
-        if (note.startsWith(sharp)) return note.replace(sharp, sharpToFlat[sharp]);
-      }
-      return note;
-    }
-    async function preloadSamples() {
-      let notesList = pianoNotesAll;
-      let folder = sampleInstrument.folder;
-      let successCount = 0;
-      document.getElementById('loadingStatus').textContent = `⏳ Đang tải Piano...`;
-      let promises = notesList.map(note => {
-        let flatNote = convertSharpToFlat(note);
-        let fileName = flatNote + '.mp3';
-        let url = `${sampleBaseURL}${folder}/${fileName}`;
-        return fetch(url)
-          .then(res => res.ok ? res.arrayBuffer() : null)
-          .then(buf => buf ? audioContext.decodeAudioData(buf) : null)
-          .then(audioBuf => { 
-            if(audioBuf) { sampleBuffers[note] = audioBuf; successCount++;
-              document.getElementById('loadingStatus').textContent = `⏳ Đang tải Piano... (${successCount}/${notesList.length})`;
+
+    <script>
+        let selectedFile = null;
+        let convertedImages = {};
+
+        // DOM Elements
+        const dragDropArea = document.getElementById('dragDropArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const settingsSection = document.getElementById('settingsSection');
+        const buttonGroup = document.getElementById('buttonGroup');
+        const downloadSection = document.getElementById('downloadSection');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const convertBtn = document.getElementById('convertBtn');
+        const messageDiv = document.getElementById('message');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+
+        // Drag and drop handlers
+        dragDropArea.addEventListener('click', () => fileInput.click());
+        
+        dragDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.add('dragover');
+        });
+
+        dragDropArea.addEventListener('dragleave', () => {
+            dragDropArea.classList.remove('dragover');
+        });
+
+        dragDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // Quality slider
+        qualitySlider.addEventListener('input', (e) => {
+            qualityValue.textContent = e.target.value + '%';
+        });
+
+        function toggleFormat(element, format) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('selected');
+        }
+
+        function updateProgress(percentage) {
+            progressFill.style.width = percentage + '%';
+            progressPercent.textContent = Math.round(percentage) + '%';
+        }
+
+        function updateProgressStep(step) {
+            document.querySelectorAll('.progress-step').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById('step' + step).classList.add('active');
+        }
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+
+            selectedFile = files[0];
+
+            // Validate file
+            if (!isValidImageFile(selectedFile)) {
+                showMessage('❌ Vui lòng chọn một file hình ảnh hợp lệ (WebP, JPG, PNG, GIF, BMP)', 'error');
+                return;
             }
-          }).catch(()=>{});
-      });
-      await Promise.all(promises);
-      if (successCount === 0) {
-        document.getElementById('loadingStatus').textContent = `❌ Không thể tải piano`;
-      } else {
-        document.getElementById('loadingStatus').textContent = `✅ Đã tải Piano`;
-        setTimeout(() => { document.getElementById('loadingStatus').style.display = 'none'; },1300);
-      }
-      hasPreload = true;
-    }
-    async function ensureSamples() {
-      initAudioContext();
-      if (!hasPreload) {
-        document.getElementById('loadingStatus').style.display = 'block';
-        await preloadSamples();
-      }
-    }
-    function showAlert(msg) {
-      const alertBox = document.getElementById("alert");
-      alertBox.textContent = msg;
-      alertBox.style.display = "block";
-      setTimeout(() => { alertBox.style.display = "none"; }, 2100);
-    }
-    function renderPiano() {
-      const whiteKeyPosX = getWhiteKeyPosX();
-      const pianoDiv = document.getElementById('piano');
-      pianoDiv.innerHTML = '';
-      pianoDiv.style.height = whiteKeyHeight + "px";
-      const trueWidth = WHITE_NOTES.length * whiteKeyWidth;
-      pianoDiv.style.width = trueWidth + "px";
-      const pianoContainer = document.querySelector('.piano-container');
-      pianoContainer.style.maxWidth = trueWidth + "px";
-      pianoContainer.style.width = "100%";
-      WHITE_NOTES.forEach((note, i) => {
-        const key = document.createElement('div');
-        key.className = 'white-key';
-        key.dataset.note = note;
-        key.textContent = note;
-        key.style.left = `${whiteKeyPosX[note]}px`;
-        key.id = 'key_'+note;
-        key.tabIndex = 0;
-        key.style.width = whiteKeyWidth+"px";
-        key.style.height = whiteKeyHeight+"px";
-        key.style.paddingBottom = Math.round(whiteKeyHeight/45)+"px";
-        key.style.fontSize = Math.max(9,Math.round(whiteKeyWidth/3))+"px";
-        key.addEventListener('mousedown', () => { key.classList.add('active'); playKeyNote(note,key); });
-        key.addEventListener('touchstart', (e) => { e.preventDefault(); key.classList.add('active'); playKeyNote(note,key); });
-        key.addEventListener('mouseup', () => { key.classList.remove('active'); });
-        key.addEventListener('mouseleave', () => { key.classList.remove('active'); });
-        key.addEventListener('touchend', () => { key.classList.remove('active'); });
-        pianoDiv.appendChild(key);
-      });
-      BLACK_NOTES_LAYOUT.forEach(bl=>{
-        const key = document.createElement('div');
-        key.className = 'black-key';
-        key.dataset.note = bl.note;
-        key.textContent = bl.note;
-        key.style.left = `${whiteKeyPosX[bl.pos]+(whiteKeyWidth - blackKeyWidth/2)}px`;
-        key.id = 'key_'+bl.note;
-        key.tabIndex = 0;
-        key.style.width = blackKeyWidth+"px";
-        key.style.height = blackKeyHeight+"px";
-        key.style.paddingBottom = Math.round(blackKeyHeight/35)+"px";
-        key.style.fontSize = Math.max(7,Math.round(blackKeyWidth/4))+"px";
-        key.addEventListener('mousedown', () => { key.classList.add('active'); playKeyNote(bl.note,key); });
-        key.addEventListener('touchstart', (e) => { e.preventDefault(); key.classList.add('active'); playKeyNote(bl.note,key); });
-        key.addEventListener('mouseup', () => { key.classList.remove('active'); });
-        key.addEventListener('mouseleave', () => { key.classList.remove('active'); });
-        key.addEventListener('touchend', () => { key.classList.remove('active'); });
-        pianoDiv.appendChild(key);
-      });
-      updateScrollbarThumb();
-    }
-    // ==== SỬA LỖI KHẸT - fade out âm lượng ====
-    async function playSample(note, volume=1.0, duration=1200) {
-      if (!audioContext || isMuted || !isAudioActivated) return;
-      let sampleBuffer = sampleBuffers[note];
-      let rootNote = note;
-      if (!sampleBuffer) {
-        const availableNotes = Object.keys(sampleBuffers).filter(n => sampleBuffers[n]);
-        let minDiff = Infinity, bestNote=null;
-        for(const avail of availableNotes){
-          let diff = Math.abs(notesFreq[avail] - notesFreq[note]);
-          if(diff < minDiff){minDiff=diff;bestNote=avail;}
-        }
-        if (!bestNote) return;
-        sampleBuffer = sampleBuffers[bestNote];
-        rootNote = bestNote;
-      }
-      const src = audioContext.createBufferSource();
-      src.buffer = sampleBuffer;
-      let semitone = Math.log2(notesFreq[note] / notesFreq[rootNote]) * 12;
-      src.playbackRate.value = Math.pow(2,semitone/12);
 
-      const gainNode = audioContext.createGain();
-      // Thời gian chơi sample thực tế
-      const playTime = Math.min(duration / 1000, src.buffer.duration / src.playbackRate.value);
-      const fadeOutEnd = audioContext.currentTime + playTime;
-      gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.0001, fadeOutEnd);
+            // Read and preview file
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    displayPreview(img);
+                    previewSection.classList.add('active');
+                    settingsSection.classList.add('active');
+                    buttonGroup.classList.add('active');
+                    downloadSection.classList.remove('active');
+                    progressSection.classList.remove('active');
+                    convertedImages = {};
+                    showMessage('', 'info');
+                };
+                img.onerror = () => {
+                    showMessage('❌ Không thể đọc file hình ảnh', 'error');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(selectedFile);
+        }
 
-      gainNode.connect(audioContext.destination);
-      src.connect(gainNode);
-      src.start();
-      src.stop(fadeOutEnd);
-    }
-    async function playKeyNote(note,keyElement) {
-      if (!isAudioActivated) { showAlert("Bật âm bằng nút 🔇 trước khi chơi!"); return; }
-      initAudioContext();
-      if (keyElement) {
-        keyElement.classList.add('active');
-        setTimeout(() => { keyElement.classList.remove('active'); }, 200);
-      }
-      await ensureSamples();
-      playSample(note,1.0,1110);
-    }
-    const soundToggle = document.getElementById('soundToggle');
-    const soundIcon = document.getElementById('soundIcon');
-    const soundStatus = document.getElementById('soundStatus');
-    soundToggle.addEventListener('click', async () => {
-      if (!isAudioActivated) {
-        soundToggle.disabled = true;
-        soundIcon.textContent = '⏳';
-        soundStatus.textContent = 'Đang kích hoạt...';
-        try {
-          initAudioContext();
-          const testAudio = new Audio('https://raw.githubusercontent.com/nhut990/files/refs/heads/main/tieng/E3_active_audio.mp3');
-          testAudio.volume = 0.3;
-          await new Promise((resolve,reject)=>{
-            testAudio.addEventListener('canplaythrough',()=>{
-              testAudio.play().then(()=>{
-                setTimeout(()=>{
-                  testAudio.pause();
-                  testAudio.currentTime=0;resolve();
-                },250);
-              }).catch(reject);
-            },{once:true});
-            testAudio.addEventListener('error',reject,{once:true});
-            testAudio.load();
-            setTimeout(()=>reject(new Error('Timeout')),4000);
-          });
-          await audioContext.resume();
-          isAudioActivated = true; isMuted = false;
-          soundToggle.classList.remove('muted');
-          soundToggle.style.opacity = '1';
-          soundToggle.style.cursor = 'pointer';
-          soundIcon.textContent = '🔊';
-          soundStatus.textContent = 'Âm thanh bật';
-          soundToggle.disabled = false;
-        } catch (error) {
-          soundToggle.disabled = false;
-          soundIcon.textContent = '🔇';
-          soundStatus.textContent = 'Thử lại';
-          alert('⚠️ Không thể kích hoạt âm thanh.\n\nLỗi: ' + error.message);
+        function isValidImageFile(file) {
+            const validTypes = ['image/webp', 'image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-windows-bmp'];
+            return validTypes.includes(file.type) || file.name.match(/\.(webp|jpg|jpeg|png|gif|bmp)$/i);
         }
-      } else {
-        isMuted = !isMuted;
-        if (isMuted) {
-          soundToggle.classList.add('muted');
-          soundIcon.textContent = '🔇';
-          soundStatus.textContent = 'Tắt âm';
-        } else {
-          soundToggle.classList.remove('muted');
-          soundIcon.textContent = '🔊';
-          soundStatus.textContent = 'Âm thanh bật';
+
+        function displayPreview(img) {
+            previewImage.src = img.src;
+            document.getElementById('fileName').textContent = selectedFile.name;
+            document.getElementById('fileSize').textContent = formatFileSize(selectedFile.size);
+            document.getElementById('fileFormat').textContent = getFileExtension(selectedFile.name).toUpperCase();
+            document.getElementById('imageDimensions').textContent = `${img.width} × ${img.height} px`;
         }
-      }
-    });
-    const keySizeSlider = document.getElementById('keySizeSlider');
-    keySizeSlider.addEventListener('input', function() {
-      whiteKeyWidth = parseInt(this.value);
-      blackKeyWidth = Math.round(this.value*0.67);
-      whiteKeyHeight = 180 + (whiteKeyWidth-33)*2;
-      blackKeyHeight = Math.round(whiteKeyHeight*0.61);
-      renderPiano();
-    });
-    window.addEventListener('resize', function(){
-      renderPiano();
-      updateScrollbarThumb();
-    });
-    window.addEventListener('load', async () => {
-      initAudioContext();
-      await ensureSamples();
-      renderPiano();
-      document.getElementById('loadingStatus').style.display = 'none';
-      initScrollbarEvents();
-      updateScrollbarThumb();
-    });
-    (function() {
-      const pianoContainer = document.querySelector('.piano-container');
-      let isPanning = false, startX = 0, scrollStart = 0;
-      pianoContainer.addEventListener('touchstart', function(e) {
-        if (e.target.classList.contains('white-key') || e.target.classList.contains('black-key')) return;
-        if (e.touches.length === 1) {
-          isPanning = true;
-          startX = e.touches[0].clientX;
-          scrollStart = pianoContainer.scrollLeft;
-          pianoContainer.style.cursor = 'grabbing';
-          e.preventDefault();
+
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
         }
-      });
-      pianoContainer.addEventListener('touchmove', function(e){
-        if (isPanning && e.touches.length === 1) {
-          let dx = startX - e.touches[0].clientX;
-          pianoContainer.scrollLeft = scrollStart + dx;
-          e.preventDefault();
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
-      });
-      pianoContainer.addEventListener('touchend', function(){
-        isPanning = false;
-        pianoContainer.style.cursor = '';
-      });
-      pianoContainer.addEventListener('mousedown', function(e) {
-        if (e.target.classList.contains('white-key') || e.target.classList.contains('black-key')) return;
-        isPanning = true;
-        startX = e.clientX;
-        scrollStart = pianoContainer.scrollLeft;
-        pianoContainer.style.cursor = 'grabbing';
-        e.preventDefault();
-      });
-      window.addEventListener('mousemove', function(e){
-        if (isPanning) {
-          let dx = startX - e.clientX;
-          pianoContainer.scrollLeft = scrollStart + dx;
+
+        function convertImage() {
+            if (!selectedFile) return;
+
+            const quality = parseInt(qualitySlider.value) / 100;
+            const selectedFormats = Array.from(document.querySelectorAll('input[name="format"]:checked')).map(cb => cb.value);
+
+            if (selectedFormats.length === 0) {
+                showMessage('❌ Vui lòng chọn ít nhất một định dạng đầu ra', 'error');
+                return;
+            }
+
+            convertBtn.disabled = true;
+            progressSection.classList.add('active');
+            updateProgress(0);
+            updateProgressStep('Reading');
+            showMessage('⏳ Đang xử lý hình ảnh...', 'info');
+
+            // Simulate reading phase
+            setTimeout(() => {
+                updateProgress(20);
+                updateProgressStep('Processing');
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+
+                img.onload = () => {
+                    updateProgress(50);
+                    updateProgressStep('Converting');
+
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    convertedImages = {};
+                    let completed = 0;
+
+                    selectedFormats.forEach((format, index) => {
+                        setTimeout(() => {
+                            convertToFormat(canvas, format, quality);
+                            completed++;
+                            const progressValue = 50 + (completed / selectedFormats.length) * 40;
+                            updateProgress(progressValue);
+
+                            if (completed === selectedFormats.length) {
+                                // Verify blobs are ready
+                                let allReady = false;
+                                let checkCount = 0;
+                                
+                                const checkBlobsReady = setInterval(() => {
+                                    checkCount++;
+                                    let allHaveBlobs = selectedFormats.every(fmt => 
+                                        convertedImages[fmt] && convertedImages[fmt].blob
+                                    );
+                                    
+                                    if (allHaveBlobs || checkCount > 20) {
+                                        clearInterval(checkBlobsReady);
+                                        updateProgress(100);
+                                        setTimeout(() => {
+                                            displayDownloadOptions();
+                                            convertBtn.disabled = false;
+                                            progressSection.classList.remove('active');
+                                            showMessage('✅ Chuyển đổi thành công!', 'success');
+                                        }, 300);
+                                    }
+                                }, 50);
+                            }
+                        }, index * 200);
+                    });
+                };
+
+                img.onerror = () => {
+                    showMessage('❌ Lỗi khi tải hình ảnh', 'error');
+                    convertBtn.disabled = false;
+                    progressSection.classList.remove('active');
+                };
+
+                img.src = URL.createObjectURL(selectedFile);
+            }, 300);
         }
-      });
-      window.addEventListener('mouseup', function(){
-        if (isPanning) {
-          isPanning = false;
-          pianoContainer.style.cursor = '';
+
+        function convertToFormat(canvas, format, quality) {
+            let mimeType = 'image/jpeg';
+            let extension = 'jpg';
+
+            if (format === 'png') {
+                mimeType = 'image/png';
+                extension = 'png';
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        convertedImages[format] = {
+                            blob: blob,
+                            filename: `converted_${Date.now()}.${extension}`,
+                            size: blob.size,
+                            quality: quality
+                        };
+                    }
+                }, mimeType);
+            } else {
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        convertedImages[format] = {
+                            blob: blob,
+                            filename: `converted_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${extension}`,
+                            size: blob.size,
+                            quality: quality
+                        };
+                    }
+                }, mimeType, quality);
+            }
         }
-      });
-    })();
-    function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
-    function updateScrollbarThumb() {
-      const pianoContainer = document.querySelector('.piano-container');
-      const piano = document.getElementById('piano');
-      const scrollbarTrack = document.getElementById('pianoScrollbarTrack');
-      const thumb = document.getElementById('pianoScrollbarThumb');
-      const maxScroll = piano.scrollWidth - pianoContainer.clientWidth;
-      const thumbWidth = thumb.offsetWidth;
-      const trackWidth = scrollbarTrack.offsetWidth;
-      const percent = (pianoContainer.scrollLeft / (maxScroll||1));
-      thumb.style.left = clamp(percent*(trackWidth-thumbWidth),0,trackWidth-thumbWidth) + "px";
-    }
-    function scrollPianoToPercent(percent) {
-      const pianoContainer = document.querySelector('.piano-container');
-      const piano = document.getElementById('piano');
-      const maxScroll = piano.scrollWidth - pianoContainer.clientWidth;
-      pianoContainer.scrollLeft = percent * maxScroll;
-      updateScrollbarThumb();
-    }
-    function initScrollbarEvents() {
-      const thumb = document.getElementById('pianoScrollbarThumb');
-      const track = document.getElementById('pianoScrollbarTrack');
-      let isDragging = false, startX = 0, startLeft = 0, trackWidth = 0, thumbWidth = 0;
-      function onDown(e) {
-        isDragging = true;
-        startX = (e.touches ? e.touches[0].clientX : e.clientX);
-        startLeft = parseInt(thumb.style.left)||0;
-        trackWidth = track.offsetWidth;
-        thumbWidth = thumb.offsetWidth;
-        document.body.style.userSelect = 'none';
-        thumb.style.transition = 'none';
-        e.preventDefault();
-      }
-      function onMove(e) {
-        if (!isDragging) return;
-        const currX = (e.touches ? e.touches[0].clientX : e.clientX);
-        let dx = currX - startX;
-        let newLeft = clamp(startLeft + dx, 0, trackWidth - thumbWidth);
-        thumb.style.left = newLeft + "px";
-        let percent = newLeft / (trackWidth - thumbWidth);
-        scrollPianoToPercent(percent);
-      }
-      function onUp(e) {
-        if(isDragging){
-          isDragging = false;
-          document.body.style.userSelect = '';
-          thumb.style.transition = '';
+
+        function displayDownloadOptions() {
+            const downloadList = document.getElementById('downloadList');
+            downloadList.innerHTML = '';
+
+            Object.entries(convertedImages).forEach(([format, data]) => {
+                const formatLabel = format.toUpperCase();
+                const item = document.createElement('div');
+                item.className = 'download-item';
+                item.innerHTML = `
+                    <div class="download-info">
+                        <div class="download-filename">📄 ${data.filename}</div>
+                        <div class="download-size">
+                            Kích thước: ${formatFileSize(data.size)} | Chất lượng: ${Math.round(data.quality * 100)}%
+                        </div>
+                    </div>
+                    <button class="download-btn" onclick="downloadImage('${format}')">⬇️ Tải</button>
+                `;
+                downloadList.appendChild(item);
+            });
+
+            downloadSection.classList.add('active');
         }
-      }
-      thumb.addEventListener('mousedown', onDown);
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-      thumb.addEventListener('touchstart', onDown);
-      window.addEventListener('touchmove', onMove, {passive:false});
-      window.addEventListener('touchend', onUp);
-      track.addEventListener('mousedown', function(e){
-        if(e.target === thumb) return;
-        trackWidth = track.offsetWidth;
-        thumbWidth = thumb.offsetWidth;
-        let clickX = e.offsetX;
-        let percent = clamp((clickX-thumbWidth/2)/(trackWidth-thumbWidth),0,1);
-        scrollPianoToPercent(percent);
-      });
-      track.addEventListener('touchstart', function(e){
-        if(e.target === thumb) return;
-        trackWidth = track.offsetWidth;
-        thumbWidth = thumb.offsetWidth;
-        let rect = track.getBoundingClientRect();
-        let touchX = e.touches[0].clientX - rect.left;
-        let percent = clamp((touchX-thumbWidth/2)/(trackWidth-thumbWidth),0,1);
-        scrollPianoToPercent(percent);
-      },{passive:false});
-      const pianoContainer = document.querySelector('.piano-container');
-      pianoContainer.addEventListener('scroll', updateScrollbarThumb);
-    }
-  </script>
+
+        function downloadImage(format) {
+            const data = convertedImages[format];
+            if (!data) return;
+
+            const url = URL.createObjectURL(data.blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = data.filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            convertedImages = {};
+            fileInput.value = '';
+            previewSection.classList.remove('active');
+            settingsSection.classList.remove('active');
+            buttonGroup.classList.remove('active');
+            downloadSection.classList.remove('active');
+            progressSection.classList.remove('active');
+            updateProgress(0);
+            updateProgressStep('Reading');
+            qualitySlider.value = 95;
+            qualityValue.textContent = '95%';
+            showMessage('', 'info');
+
+            // Reset format selection
+            document.querySelectorAll('input[name="format"]').forEach((cb, index) => {
+                cb.checked = index === 0;
+                cb.parentElement.classList.toggle('selected', index === 0);
+            });
+        }
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            if (text) {
+                messageDiv.classList.add('active');
+            } else {
+                messageDiv.classList.remove('active');
+            }
+        }
+    </script>
 </body>
 </html>
